@@ -1,0 +1,162 @@
+const express = require('express');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+const pool = require('../db');
+const { JWT_SECRET } = require('../middleware/auth');
+
+const router = express.Router();
+
+// Generate a random 6-digit OTP (Mock for now, could be used for email later)
+const generateOTP = () => Math.floor(100000 + Math.random() * 900000).toString();
+const otpStore = new Map();
+
+// POST /api/auth/signup (Student Registration)
+router.post('/signup/student', async (req, res) => {
+    try {
+        const { name, email, enrollment_no, department, semester, password } = req.body;
+
+        if (!name || !email || !password || !enrollment_no) {
+            return res.status(400).json({ error: 'Required fields are missing' });
+        }
+
+        const existing = await pool.query('SELECT id FROM students WHERE email = $1 OR enrollment_no = $2', [email, enrollment_no]);
+        if (existing.rows.length > 0) {
+            return res.status(409).json({ error: 'Email or Enrollment Number already registered' });
+        }
+
+        const salt = await bcrypt.genSalt(10);
+        const passwordHash = await bcrypt.hash(password, salt);
+
+        const result = await pool.query(
+            'INSERT INTO students (name, email, enrollment_no, department, semester, password_hash) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id, name, email',
+            [name, email, enrollment_no, department, semester, passwordHash]
+        );
+
+        // Note: I'll need to add a default role to the students table or handle it in the token
+        const user = { ...result.rows[0], role: 'student' };
+        const token = jwt.sign({ id: user.id, email: user.email, role: 'student' }, JWT_SECRET, { expiresIn: '7d' });
+
+        res.status(201).json({ user, token });
+    } catch (err) {
+        console.error('Student signup error:', err);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+// POST /api/auth/signup/faculty
+router.post('/signup/faculty', async (req, res) => {
+    try {
+        const { name, email, designation, password } = req.body;
+
+        if (!name || !email || !password || !designation) {
+            return res.status(400).json({ error: 'Required fields are missing' });
+        }
+
+        const existing = await pool.query('SELECT id FROM faculty WHERE email = $1', [email]);
+        if (existing.rows.length > 0) {
+            return res.status(409).json({ error: 'Email already registered' });
+        }
+
+        const salt = await bcrypt.genSalt(10);
+        const passwordHash = await bcrypt.hash(password, salt);
+
+        const result = await pool.query(
+            'INSERT INTO faculty (name, email, designation, password_hash) VALUES ($1, $2, $3, $4) RETURNING id, name, email',
+            [name, email, designation, passwordHash]
+        );
+
+        const user = { ...result.rows[0], role: 'faculty' };
+        const token = jwt.sign({ id: user.id, email: user.email, role: 'faculty' }, JWT_SECRET, { expiresIn: '7d' });
+
+        res.status(201).json({ user, token });
+    } catch (err) {
+        console.error('Faculty signup error:', err);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+// GET /api/auth/profile/:email
+router.get('/profile/:email', async (req, res) => {
+    try {
+        const { email } = req.params;
+        const requestedRole = req.query.role; // e.g., 'student' or 'faculty'
+
+        try {
+            // Check students table
+            let result = await pool.query('SELECT name, email FROM students WHERE email = $1', [email]);
+            if (result.rows.length > 0) {
+                return res.json({ ...result.rows[0], role: 'student' });
+            }
+
+            // Check faculty table
+            result = await pool.query('SELECT name, email, designation FROM faculty WHERE email = $1', [email]);
+            if (result.rows.length > 0) {
+                return res.json({ ...result.rows[0], role: 'faculty' });
+            }
+        } catch (dbErr) {
+            console.error('Database connection error in profile fetch:', dbErr.message);
+            // Fallback for development if DB is down
+            // If the frontend passed a requestedRole, trust it during fallback.
+            // Otherwise try to guess based on the email.
+            let fallbackRole = 'student';
+            if (requestedRole === 'faculty' || requestedRole === 'student') {
+                fallbackRole = requestedRole;
+            } else if (email.toLowerCase().includes('faculty') || email.toLowerCase().includes('admin')) {
+                fallbackRole = 'faculty';
+            }
+
+            return res.json({
+                name: email.split('@')[0],
+                email: email,
+                role: fallbackRole,
+                is_fallback: true
+            });
+        }
+
+        res.status(404).json({ error: 'Profile not found' });
+    } catch (err) {
+        console.error('Profile fetch error:', err);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+// POST /api/auth/login
+router.post('/login', async (req, res) => {
+    try {
+        const { email, password, role } = req.body; // role: 'student' or 'faculty'
+
+        if (!email || !password || !role) {
+            return res.status(400).json({ error: 'Email, password, and role are required' });
+        }
+
+        const table = role === 'faculty' ? 'faculty' : 'students';
+        const result = await pool.query(`SELECT * FROM ${table} WHERE email = $1`, [email]);
+
+        if (result.rows.length === 0) {
+            return res.status(401).json({ error: 'Invalid credentials' });
+        }
+
+        const user = result.rows[0];
+        const validPassword = await bcrypt.compare(password, user.password_hash);
+        if (!validPassword) {
+            return res.status(401).json({ error: 'Invalid credentials' });
+        }
+
+        // Generate Token
+        const token = jwt.sign(
+            { id: user.id, email: user.email, role: role },
+            JWT_SECRET,
+            { expiresIn: '7d' }
+        );
+
+        res.json({
+            user: { id: user.id, name: user.name, email: user.email, role: role },
+            token
+        });
+    } catch (err) {
+        console.error('Login error:', err);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+module.exports = router;
