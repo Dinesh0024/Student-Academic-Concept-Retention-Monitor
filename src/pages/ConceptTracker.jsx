@@ -67,15 +67,17 @@ export default function ConceptTracker() {
     return (
         <PageTransition>
             <div className="pb-12">
-                <div className="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-4">
-                    <div>
-                        <h1 className="text-4xl font-bold tracking-tight text-gray-900 mb-2">Knowledge Graph</h1>
-                        <p className="text-gray-500 font-medium tracking-tight">Diagnostics and mastery tracking for core academic concepts</p>
+                <header className="mb-10 lg:px-0">
+                    <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+                        <div className="space-y-1">
+                            <h1 className="text-4xl font-bold tracking-tight text-app-text">Knowledge Matrix</h1>
+                            <p className="text-app-text-tertiary font-medium tracking-tight">AI-mapped cognitive structures and retention telemetry</p>
+                        </div>
+                        <button onClick={() => setModalOpen(true)} className="apple-btn apple-btn-primary flex items-center gap-2 !py-2.5 !px-6 shadow-xl shadow-blue-500/20">
+                            <HiOutlinePlus className="w-5 h-5" /> Initialize Concept
+                        </button>
                     </div>
-                    <button onClick={() => setModalOpen(true)} className="apple-btn apple-btn-primary flex items-center gap-2 !py-2.5 !px-6 shadow-xl shadow-blue-500/20">
-                        <HiOutlinePlus className="w-5 h-5" /> Initialize Concept
-                    </button>
-                </div>
+                </header>
 
                 {/* Search & Filters */}
                 <div className="flex flex-col md:flex-row gap-4 mb-10">

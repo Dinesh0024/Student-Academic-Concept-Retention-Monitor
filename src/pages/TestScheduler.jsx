@@ -78,23 +78,25 @@ export default function TestScheduler() {
     return (
         <PageTransition>
             <div className="pb-12">
-                <div className="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-4">
-                    <div>
-                        <h1 className="text-4xl font-bold tracking-tight text-gray-900 mb-2">Cycle Scheduler</h1>
-                        <p className="text-gray-500 font-medium tracking-tight">Configure and deploy assessment windows for candidate evaluation</p>
+                <header className="mb-10 lg:px-0">
+                    <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+                        <div className="space-y-1">
+                            <h1 className="text-4xl font-bold tracking-tight text-app-text">Cycle Scheduler</h1>
+                            <p className="text-app-text-tertiary font-medium tracking-tight">Configure and deploy assessment windows for candidate evaluation</p>
+                        </div>
                     </div>
                     {!isCreating && (
                         <button onClick={() => setIsCreating(true)} className="apple-btn apple-btn-primary flex items-center gap-2 !py-2.5 !px-8 shadow-xl shadow-blue-500/20">
                             <HiOutlinePlus className="w-5 h-5" /> Initialize Window
                         </button>
                     )}
-                </div>
+                </header>
 
                 <AnimatePresence>
                     {isCreating && (
                         <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.98 }} className="overflow-hidden mb-10">
-                            <div className="premium-card p-10 bg-white">
-                                <h2 className="text-xl font-bold text-gray-900 mb-8 border-b border-gray-50 pb-6 uppercase tracking-widest text-[10px]">Assessment Configuration</h2>
+                            <div className="premium-card p-10 bg-app-bg">
+                                <h2 className="text-xl font-bold text-app-text mb-8 border-b border-app-border pb-6 uppercase tracking-widest text-[10px]">Assessment Configuration</h2>
                                 <form onSubmit={handleSchedule} className="space-y-8">
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                         <div className="apple-input-group">
@@ -129,8 +131,8 @@ export default function TestScheduler() {
                                                         key={c.id}
                                                         onClick={() => toggleConcept(c.id)}
                                                         className={`p-4 rounded-2xl border text-[10px] font-black uppercase tracking-widest text-center cursor-pointer transition-all ${selectedConcepts.includes(c.id)
-                                                            ? 'bg-gray-900 text-white border-gray-900 shadow-xl'
-                                                            : 'bg-gray-50 border-gray-100 text-gray-400 hover:bg-white hover:border-blue-200'
+                                                            ? 'bg-app-text text-app-bg border-app-text shadow-xl'
+                                                            : 'bg-app-bg-secondary border-app-border text-app-text-tertiary hover:bg-app-bg hover:border-accent/50'
                                                             }`}
                                                     >
                                                         {c.name}
@@ -159,9 +161,9 @@ export default function TestScheduler() {
                                         </div>
                                     </div>
 
-                                    <div className="flex justify-end gap-4 pt-8 border-t border-gray-50">
-                                        <button type="button" onClick={() => setIsCreating(false)} className="px-8 py-3 text-xs font-bold text-gray-400 hover:text-gray-900 transition-colors uppercase tracking-widest">Abort</button>
-                                        <button type="submit" className="apple-btn apple-btn-primary !py-3 !px-12 text-xs font-black uppercase tracking-widest shadow-xl shadow-blue-500/20">Commit Window</button>
+                                    <div className="flex justify-end gap-4 pt-8 border-t border-app-border">
+                                        <button type="button" onClick={() => setIsCreating(false)} className="px-8 py-3 text-xs font-bold text-app-text-tertiary hover:text-app-text transition-colors uppercase tracking-widest">Abort</button>
+                                        <button type="submit" className="apple-btn apple-btn-primary !py-3 !px-12 text-xs font-black uppercase tracking-widest shadow-xl shadow-accent/20">Commit Window</button>
                                     </div>
                                 </form>
                             </div>
@@ -172,40 +174,40 @@ export default function TestScheduler() {
                 <div className="grid grid-cols-1 gap-6">
                     <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-4 text-center">Active Assessment Windows</h3>
                     {tests.length === 0 ? (
-                        <div className="premium-card p-12 bg-white text-center border-2 border-dashed border-gray-100">
-                            <p className="text-sm font-bold text-gray-400 uppercase tracking-widest">No active protocols detected</p>
+                        <div className="premium-card p-12 bg-app-bg text-center border-2 border-dashed border-app-border">
+                            <p className="text-sm font-bold text-app-text-tertiary uppercase tracking-widest">No active protocols detected</p>
                         </div>
                     ) : (
                         tests.map(test => (
-                            <div key={test.id} className="premium-card bg-white p-8 flex flex-col md:flex-row items-center justify-between gap-8 group hover:shadow-2xl transition-all duration-700">
+                            <div key={test.id} className="premium-card bg-app-bg p-8 flex flex-col md:flex-row items-center justify-between gap-8 group hover:shadow-2xl transition-all duration-700">
                                 <div className="flex items-center gap-6">
-                                    <div className="w-14 h-14 bg-gray-50 text-gray-400 group-hover:bg-blue-50 group-hover:text-blue-500 rounded-2xl flex items-center justify-center border border-gray-100 transition-colors">
+                                    <div className="w-14 h-14 bg-app-bg-secondary text-app-text-tertiary group-hover:bg-accent/10 group-hover:text-accent rounded-2xl flex items-center justify-center border border-app-border transition-colors">
                                         <HiOutlineDocumentText className="w-7 h-7" />
                                     </div>
                                     <div>
-                                        <h4 className="font-bold text-gray-900 text-lg tracking-tight mb-1">{test.name}</h4>
+                                        <h4 className="font-bold text-app-text text-lg tracking-tight mb-1">{test.name}</h4>
                                         <div className="flex items-center gap-2">
-                                            <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
-                                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.15em]">{test.subject}</p>
+                                            <span className="w-1.5 h-1.5 rounded-full bg-accent"></span>
+                                            <p className="text-[10px] font-black text-app-text-tertiary uppercase tracking-[0.15em]">{test.subject}</p>
                                         </div>
                                     </div>
                                 </div>
                                 <div className="flex flex-wrap items-center justify-center md:justify-end gap-10">
                                     <div className="text-center">
-                                        <p className="text-[10px] font-black text-gray-300 uppercase tracking-widest mb-1">Schedule</p>
-                                        <div className="flex items-center gap-2 text-xs font-bold text-gray-700">
-                                            <HiOutlineCalendar className="w-4 h-4 text-gray-400" />
+                                        <p className="text-[10px] font-black text-app-text-tertiary uppercase tracking-widest mb-1 opacity-50">Schedule</p>
+                                        <div className="flex items-center gap-2 text-xs font-bold text-app-text">
+                                            <HiOutlineCalendar className="w-4 h-4 text-app-text-tertiary" />
                                             <span>{new Date(test.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
                                         </div>
                                     </div>
                                     <div className="text-center">
-                                        <p className="text-[10px] font-black text-gray-300 uppercase tracking-widest mb-1">Window</p>
-                                        <div className="flex items-center gap-2 text-xs font-bold text-gray-700">
-                                            <HiOutlineClock className="w-4 h-4 text-gray-400" />
+                                        <p className="text-[10px] font-black text-app-text-tertiary uppercase tracking-widest mb-1 opacity-50">Window</p>
+                                        <div className="flex items-center gap-2 text-xs font-bold text-app-text">
+                                            <HiOutlineClock className="w-4 h-4 text-app-text-tertiary" />
                                             <span>{test.time} ({test.duration}m)</span>
                                         </div>
                                     </div>
-                                    <button className="apple-btn apple-btn-secondary !py-2 !px-6 !text-[10px] !font-black !uppercase !tracking-widest self-center md:self-auto group-hover:bg-gray-100 group-hover:border-gray-200 transition-all">
+                                    <button className="apple-btn apple-btn-secondary !py-2 !px-6 !text-[10px] !font-black !uppercase !tracking-widest self-center md:self-auto group-hover:bg-app-bg-secondary group-hover:border-app-border transition-all">
                                         Modify
                                     </button>
                                 </div>
@@ -214,6 +216,6 @@ export default function TestScheduler() {
                     )}
                 </div>
             </div>
-        </PageTransition>
+        </PageTransition >
     );
 }

@@ -178,15 +178,17 @@ export default function Dashboard() {
     return (
         <PageTransition>
             <div className="pb-12">
-                <div className="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-4">
-                    <div>
-                        <h1 className="text-4xl font-bold tracking-tight text-gray-900 mb-2">Academic Overview</h1>
-                        <p className="text-gray-500 font-medium">Monitoring concept retention across all departments</p>
+                <header className="mb-10 px-2 lg:px-0">
+                    <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+                        <div className="space-y-1">
+                            <h1 className="text-4xl font-bold tracking-tight text-app-text">Institution Overview</h1>
+                            <p className="text-app-text-tertiary font-medium tracking-tight">Consolidated real-time academic retention intelligence</p>
+                        </div>
+                        <div className="flex gap-3">
+                            <button className="apple-btn apple-btn-secondary !py-2 !px-4 text-sm font-bold">Download Report</button>
+                        </div>
                     </div>
-                    <div className="flex gap-3">
-                        <button className="apple-btn apple-btn-secondary !py-2 !px-4 text-sm font-bold">Download Report</button>
-                    </div>
-                </div>
+                </header>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
                     <StatCard title="Active Students" value="1,240" trend={5.2} icon={HiOutlineUserGroup} />

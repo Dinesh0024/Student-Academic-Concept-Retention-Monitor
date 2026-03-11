@@ -79,12 +79,14 @@ export default function StudentDashboard() {
     return (
         <PageTransition>
             <div className="pb-12">
-                <div className="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-4">
-                    <div>
-                        <h1 className="text-4xl md:text-5xl font-black tracking-tight text-gray-900 mb-2">My Learning Path</h1>
-                        <p className="text-base md:text-lg text-gray-500 font-medium tracking-tight">Welcome back, {user?.name || 'Student'}. Here is your retention summary.</p>
+                <header className="mb-10 px-2 lg:px-0">
+                    <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+                        <div className="space-y-1">
+                            <h1 className="text-4xl font-bold tracking-tight text-app-text">Performance Matrix</h1>
+                            <p className="text-app-text-tertiary font-medium tracking-tight">Academic concepts retention and diagnostic telemetry</p>
+                        </div>
                     </div>
-                </div>
+                </header>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
                     <StatCard title="Overall Mastery" value={`${overallMastery}%`} trend={overallMastery > 75 ? 3.2 : -1.5} icon={HiOutlineFire} />
