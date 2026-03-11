@@ -23,6 +23,18 @@
   --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", Helvetica, Arial, sans-serif;
 }
 
+.dark {
+  --color-surface: #000000;
+  --color-surface-secondary: #1c1c1e;
+  --color-surface-tertiary: #2c2c2e;
+  --color-text-primary: #f5f5f7;
+  --color-text-secondary: #a1a1a6;
+  --color-text-tertiary: #6e6e73;
+  --color-border: #38383a;
+  --color-primary-dark: #f5f5f7;
+  --color-primary-light: #86868b;
+}
+
 @layer base {
   * {
     margin: 0;
@@ -69,11 +81,24 @@
   }
 
   /* === GLASSMORPHISM REFINED === */
-  .glass-panel {
+  .glass-panel,
+  .glass-card {
     background: rgba(255, 255, 255, 0.72);
     backdrop-filter: saturate(180%) blur(20px);
     -webkit-backdrop-filter: saturate(180%) blur(20px);
     border: 1px solid rgba(255, 255, 255, 0.3);
+  }
+
+  .dark .premium-card {
+    background: var(--color-surface-secondary);
+    border-color: rgba(255, 255, 255, 0.08);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2), 0 10px 20px rgba(0, 0, 0, 0.3);
+  }
+
+  .dark .glass-panel,
+  .dark .glass-card {
+    background: rgba(28, 28, 30, 0.8);
+    border-color: rgba(255, 255, 255, 0.1);
   }
 
   /* === SF PRO TYPE UTILS === */
@@ -139,6 +164,10 @@
     border-color: var(--color-accent);
     background: white;
     box-shadow: 0 0 0 4px rgba(0, 113, 227, 0.1);
+  }
+
+  .dark .apple-input:focus {
+    background: var(--color-surface-secondary);
   }
 
   /* === ANIMATIONS === */

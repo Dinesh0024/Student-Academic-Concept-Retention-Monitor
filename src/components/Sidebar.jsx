@@ -69,7 +69,7 @@ export default function Sidebar({ isOpen, onClose, role }) {
             </AnimatePresence>
 
             <aside
-                className={`fixed top-0 left-0 bottom-0 w-[260px] z-30 pt-4 bg-white border-r border-gray-100 transition-transform duration-500 ease-[cubic-bezier(0.16, 1, 0.3, 1)] ${isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
+                className={`fixed top-0 left-0 bottom-0 w-[260px] z-30 pt-4 bg-white dark:bg-black border-r border-gray-100 dark:border-white/10 transition-transform duration-500 ease-[cubic-bezier(0.16, 1, 0.3, 1)] ${isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
                     }`}
             >
                 <div className="h-full flex flex-col px-4">
@@ -78,13 +78,13 @@ export default function Sidebar({ isOpen, onClose, role }) {
                             <div className={`w-8 h-8 rounded-xl flex items-center justify-center text-white shadow-xl transition-transform group-hover:scale-105 ${role === 'faculty' ? 'bg-indigo-500 shadow-indigo-500/20' : role === 'student' ? 'bg-emerald-500 shadow-emerald-500/20' : 'bg-gray-900 shadow-gray-200'}`}>
                                 <span className="font-bold text-sm">{role === 'faculty' ? 'F' : role === 'student' ? 'S' : 'A'}</span>
                             </div>
-                            <span className="font-black text-xl tracking-tighter text-inherit">
+                            <span className="font-black text-xl tracking-tighter text-inherit dark:text-white">
                                 {role === 'faculty' ? 'Command' : role === 'student' ? 'Learn' : 'Retain'}
                                 <span className={role === 'faculty' ? 'text-indigo-400' : role === 'student' ? 'text-emerald-400' : 'text-blue-500'}>.</span>
                             </span>
                         </Link>
                         {isOpen && (
-                            <button onClick={onClose} className="md:hidden text-gray-400 hover:text-black">
+                            <button onClick={onClose} className="md:hidden text-gray-400 hover:text-black dark:hover:text-white">
                                 <HiOutlineX className="w-5 h-5" />
                             </button>
                         )}
@@ -104,8 +104,8 @@ export default function Sidebar({ isOpen, onClose, role }) {
                                     to={link.to}
                                     onClick={onClose}
                                     className={`flex items-center gap-3 px-4 py-3 rounded-2xl text-[13px] font-bold transition-all duration-300 relative group overflow-hidden ${isActive
-                                        ? 'text-blue-600 bg-blue-50/80 shadow-sm'
-                                        : 'text-gray-400 hover:text-gray-900 hover:bg-gray-50'
+                                        ? 'text-blue-600 dark:text-blue-400 bg-blue-50/80 dark:bg-blue-500/10 shadow-sm'
+                                        : 'text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-white/5'
                                         }`}
                                 >
                                     <link.icon className={`w-5 h-5 transition-all duration-500 ${isActive ? 'scale-110 text-blue-500' : 'group-hover:scale-110'}`} />
@@ -121,7 +121,7 @@ export default function Sidebar({ isOpen, onClose, role }) {
                         })}
                     </nav>
 
-                    <div className="py-8 mt-auto border-t border-gray-50">
+                    <div className="py-8 mt-auto border-t border-gray-50 dark:border-white/5">
                         <button
                             onClick={handleLogout}
                             className="flex items-center gap-3 px-4 py-3 rounded-2xl text-[13px] font-black uppercase tracking-[0.1em] text-red-400 hover:text-red-500 hover:bg-red-50 transition-all w-full group"

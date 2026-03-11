@@ -1,11 +1,13 @@
 import { useState, useRef, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { HiOutlineBell, HiOutlineMenu, HiOutlineSearch, HiOutlineUserCircle, HiOutlineChevronDown, HiOutlineCog } from 'react-icons/hi';
+import { HiOutlineBell, HiOutlineMenu, HiOutlineSearch, HiOutlineUserCircle, HiOutlineChevronDown, HiOutlineCog, HiOutlineSun, HiOutlineMoon } from 'react-icons/hi';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 
 export default function Navbar({ onMenuToggle }) {
     const { user, logout, isAuthenticated } = useAuth();
+    const { dark, toggle } = useTheme();
     const [profileOpen, setProfileOpen] = useState(false);
     const [notifOpen, setNotifOpen] = useState(false);
     const profileRef = useRef(null);
@@ -28,7 +30,7 @@ export default function Navbar({ onMenuToggle }) {
     ];
 
     return (
-        <nav className={`fixed top-0 left-0 right-0 z-40 bg-white/70 backdrop-blur-2xl border-b border-gray-100/50 h-16 transition-all ${isLanding ? '' : 'md:pl-[260px]'}`}>
+        <nav className={`fixed top-0 left-0 right-0 z-40 bg-white/70 dark:bg-black/70 backdrop-blur-2xl border-b border-gray-100/50 dark:border-white/10 h-16 transition-all ${isLanding ? '' : 'md:pl-[260px]'}`}>
             <div className={`flex items-center justify-between h-full px-8 ${isLanding ? 'max-w-7xl mx-auto' : ''}`}>
                 <div className="flex items-center gap-4">
                     {!isLanding && (
@@ -99,6 +101,14 @@ export default function Navbar({ onMenuToggle }) {
                                     )}
                                 </AnimatePresence>
                             </div>
+
+                            <button
+                                onClick={toggle}
+                                className="w-10 h-10 rounded-2xl flex items-center justify-center text-gray-400 hover:bg-gray-50 dark:hover:bg-white/5 hover:text-gray-900 dark:hover:text-white transition-all shadow-sm border border-transparent hover:border-gray-100 dark:hover:border-white/10"
+                                title={dark ? "Switch to Light Mode" : "Switch to Dark Mode"}
+                            >
+                                {dark ? <HiOutlineSun className="w-5 h-5" /> : <HiOutlineMoon className="w-5 h-5" />}
+                            </button>
 
                             <div className="relative" ref={profileRef}>
                                 <button
