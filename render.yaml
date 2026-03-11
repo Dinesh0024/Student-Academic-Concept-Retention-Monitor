@@ -1,0 +1,22 @@
+services:
+  # The web service: Runs Node.js, builds React frontend and serves via Express
+  - type: web
+    name: student-retention-monitor
+    env: node
+    plan: free
+    buildCommand: npm install && npm install --prefix server && npm run build
+    startCommand: npm start
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: student-retention-db
+          property: connectionString
+      - key: NODE_VERSION
+        value: 18.20.0
+
+databases:
+  # The database service: A free PostgreSQL instance
+  - name: student-retention-db
+    plan: free
+    databaseName: student_retention
+    user: render_admin
