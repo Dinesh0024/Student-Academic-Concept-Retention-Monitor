@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { HiOutlineBookOpen, HiOutlineCheckCircle, HiOutlineClock, HiOutlineFire, HiOutlineTrendingUp, HiOutlineStar } from 'react-icons/hi';
+import { HiOutlineBookOpen, HiOutlineCheckCircle, HiOutlineClock, HiOutlineFire, HiOutlineTrendingUp, HiOutlineStar, HiOutlineLightBulb, HiOutlineDocumentReport, HiOutlineCog } from 'react-icons/hi';
 import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { Link } from 'react-router-dom';
@@ -79,20 +79,41 @@ export default function StudentDashboard() {
     return (
         <PageTransition>
             <div className="pb-12">
-                <header className="mb-10 px-2 lg:px-0">
-                    <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-                        <div className="space-y-1">
-                            <h1 className="text-4xl font-bold tracking-tight text-app-text">Performance Matrix</h1>
-                            <p className="text-app-text-tertiary font-medium tracking-tight">Academic concepts retention and diagnostic telemetry</p>
-                        </div>
+                <div className="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-4">
+                    <div>
+                        <h1 className="text-4xl md:text-5xl font-black tracking-tight text-gray-900 mb-2">My Learning Path</h1>
+                        <p className="text-base md:text-lg text-gray-500 font-medium tracking-tight">Welcome back, {user?.name || 'Student'}. Here is your retention summary.</p>
                     </div>
-                </header>
+                </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
                     <StatCard title="Overall Mastery" value={`${overallMastery}%`} trend={overallMastery > 75 ? 3.2 : -1.5} icon={HiOutlineFire} />
                     <StatCard title="Tests Taken" value="12" trend={1} icon={HiOutlineCheckCircle} />
                     <StatCard title="Topic Velocity" value="High" icon={HiOutlineTrendingUp} />
                     <StatCard title="Certificates" value="2" icon={HiOutlineStar} />
+                </div>
+
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
+                    <Link to="/student/concepts" className="premium-card p-6 bg-white hover:bg-emerald-50 border-b-4 border-b-emerald-500 transition-all group">
+                        <HiOutlineLightBulb className="w-8 h-8 text-emerald-500 mb-3 group-hover:scale-110 transition-transform" />
+                        <h4 className="font-bold text-gray-900 text-sm">Knowledge Map</h4>
+                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">Concept Mastery</p>
+                    </Link>
+                    <Link to="/student/reports" className="premium-card p-6 bg-white hover:bg-blue-50 border-b-4 border-b-blue-500 transition-all group">
+                        <HiOutlineDocumentReport className="w-8 h-8 text-blue-500 mb-3 group-hover:scale-110 transition-transform" />
+                        <h4 className="font-bold text-gray-900 text-sm">Academic Matrix</h4>
+                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">Performance Audit</p>
+                    </Link>
+                    <Link to="/student/assessments" className="premium-card p-6 bg-white hover:bg-indigo-50 border-b-4 border-b-indigo-500 transition-all group">
+                        <HiOutlineCheckCircle className="w-8 h-8 text-indigo-500 mb-3 group-hover:scale-110 transition-transform" />
+                        <h4 className="font-bold text-gray-900 text-sm">Assessments</h4>
+                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">Live Testing</p>
+                    </Link>
+                    <Link to="/student/settings" className="premium-card p-6 bg-white hover:bg-gray-50 border-b-4 border-b-gray-900 transition-all group">
+                        <HiOutlineCog className="w-8 h-8 text-gray-900 mb-3 group-hover:scale-110 transition-transform" />
+                        <h4 className="font-bold text-gray-900 text-sm">Portal Settings</h4>
+                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">Preferences</p>
+                    </Link>
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

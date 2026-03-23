@@ -9,7 +9,7 @@ export default function DashboardLayout({ children }) {
     const { user } = useAuth();
 
     return (
-        <div className={`min-h-screen bg-app-bg transition-colors duration-500 ${user?.role === 'faculty' ? 'theme-faculty' : user?.role === 'student' ? 'theme-student' : ''}`}>
+        <div className={`min-h-screen ${user?.role === 'faculty' ? 'theme-faculty' : user?.role === 'student' ? 'theme-student' : ''}`}>
             <Navbar onMenuToggle={() => setSidebarOpen(!sidebarOpen)} />
             <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} role={user?.role} />
             <main className="pt-16 md:pl-[260px]">

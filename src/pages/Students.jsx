@@ -62,17 +62,15 @@ export default function Students() {
     return (
         <PageTransition>
             <div className="pb-12">
-                <header className="mb-10 lg:px-0">
-                    <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-                        <div className="space-y-1">
-                            <h1 className="text-4xl font-bold tracking-tight text-app-text">Cohort Management</h1>
-                            <p className="text-app-text-tertiary font-medium tracking-tight">Monitoring academic progress across all enrolled candidates</p>
-                        </div>
-                        <button onClick={() => { setEditStudent(null); setModalOpen(true); }} className="apple-btn apple-btn-primary flex items-center gap-2 !py-2.5 !px-6 shadow-xl shadow-blue-500/20">
-                            <HiOutlinePlus className="w-5 h-5" /> Register Student
-                        </button>
+                <div className="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-4">
+                    <div>
+                        <h1 className="text-4xl font-bold tracking-tight text-gray-900 mb-2">Member Directory</h1>
+                        <p className="text-gray-500 font-medium tracking-tight">Management of all student clinical retention profiles</p>
                     </div>
-                </header>
+                    <button onClick={() => { setEditStudent(null); setModalOpen(true); }} className="apple-btn apple-btn-primary flex items-center gap-2 !py-2.5 !px-6 shadow-xl shadow-blue-500/20">
+                        <HiOutlinePlus className="w-5 h-5" /> Register Student
+                    </button>
+                </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
                     <StatCard title="Total Enrolled" value={studentList.length} icon={HiOutlineUserGroup} />

@@ -5,9 +5,6 @@ import { ThemeProvider } from './context/ThemeContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import DashboardLayout from './components/DashboardLayout';
 
-// Import seeder data
-import mockDb from "./utils/mockDb";
-
 import Landing from './pages/Landing';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
@@ -44,6 +41,16 @@ function ProtectedRoute({ children, allowedRoles }) {
   return children;
 }
 
+function HomeRedirect() {
+  const { isAuthenticated, user, loading } = useAuth();
+  if (loading) return null;
+  if (isAuthenticated) {
+    const role = user?.role || 'student';
+    return <Navigate to={role === 'admin' ? '/admin' : role === 'faculty' ? '/faculty' : '/student'} replace />;
+  }
+  return <Landing />;
+}
+
 function AppRoutes() {
   const { user } = useAuth();
   const role = user?.role;
@@ -69,6 +76,7 @@ function AppRoutes() {
         <Routes>
           <Route index element={<StudentDashboard />} />
           <Route path="assessments" element={<LiveAssessments />} />
+          <Route path="concepts" element={<ConceptTracker />} />
           <Route path="test" element={<TestInterface />} />
           <Route path="reports" element={<Reports />} />
           <Route path="settings" element={<Settings />} />
@@ -98,7 +106,7 @@ export default function App() {
       <AuthProvider>
         <BrowserRouter>
           <Routes>
-            <Route path="/" element={<Landing />} />
+            <Route path="/" element={<HomeRedirect />} />
             <Route path="/faculty/login" element={<Login />} />
             <Route path="/student/login" element={<Login />} />
             <Route path="/faculty/signup" element={<Signup />} />

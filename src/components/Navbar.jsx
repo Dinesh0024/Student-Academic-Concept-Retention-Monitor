@@ -1,13 +1,11 @@
 import { useState, useRef, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { HiOutlineBell, HiOutlineMenu, HiOutlineSearch, HiOutlineUserCircle, HiOutlineChevronDown, HiOutlineCog, HiOutlineSun, HiOutlineMoon } from 'react-icons/hi';
+import { HiOutlineBell, HiOutlineMenu, HiOutlineSearch, HiOutlineUserCircle, HiOutlineChevronDown, HiOutlineCog } from 'react-icons/hi';
 import { useAuth } from '../context/AuthContext';
-import { useTheme } from '../context/ThemeContext';
 
 export default function Navbar({ onMenuToggle }) {
     const { user, logout, isAuthenticated } = useAuth();
-    const { dark, toggle } = useTheme();
     const [profileOpen, setProfileOpen] = useState(false);
     const [notifOpen, setNotifOpen] = useState(false);
     const profileRef = useRef(null);
@@ -30,7 +28,7 @@ export default function Navbar({ onMenuToggle }) {
     ];
 
     return (
-        <nav className={`fixed top-0 left-0 right-0 z-40 bg-app-bg/70 backdrop-blur-2xl border-b border-app-border h-16 transition-all ${isLanding ? '' : 'md:pl-[260px]'}`}>
+        <nav className={`fixed top-0 left-0 right-0 z-40 bg-white/70 backdrop-blur-2xl border-b border-gray-100/50 h-16 transition-all ${isLanding ? '' : 'md:pl-[260px]'}`}>
             <div className={`flex items-center justify-between h-full px-8 ${isLanding ? 'max-w-7xl mx-auto' : ''}`}>
                 <div className="flex items-center gap-4">
                     {!isLanding && (
@@ -58,7 +56,7 @@ export default function Navbar({ onMenuToggle }) {
                             <input
                                 type="text"
                                 placeholder={user?.role === 'faculty' ? 'Search academic performance...' : 'Search learning concepts...'}
-                                className="w-full bg-app-bg-secondary border border-app-border rounded-2xl py-2 pl-11 pr-4 text-[13px] font-bold text-app-text placeholder:text-app-text-tertiary focus:bg-app-bg focus:ring-4 focus:ring-accent/10 outline-none transition-all"
+                                className="w-full bg-gray-50/50 border border-gray-100 rounded-2xl py-2 pl-11 pr-4 text-[13px] font-bold text-gray-700 placeholder:text-gray-300 focus:bg-white focus:ring-4 focus:ring-opacity-5 outline-none transition-all"
                             />
                         </div>
                     </div>
@@ -70,7 +68,7 @@ export default function Navbar({ onMenuToggle }) {
                             <div className="relative" ref={notifRef}>
                                 <button
                                     onClick={() => setNotifOpen(!notifOpen)}
-                                    className={`relative w-10 h-10 rounded-2xl flex items-center justify-center transition-all ${notifOpen ? 'bg-accent/10 text-accent' : 'text-app-text-tertiary hover:bg-app-bg-secondary hover:text-app-text'}`}
+                                    className={`relative w-10 h-10 rounded-2xl flex items-center justify-center transition-all ${notifOpen ? 'bg-blue-50 text-blue-500' : 'text-gray-400 hover:bg-gray-50 hover:text-gray-900'}`}
                                 >
                                     <HiOutlineBell className="w-5 h-5" />
                                     {notifications.some(n => n.unread) && (
@@ -83,7 +81,7 @@ export default function Navbar({ onMenuToggle }) {
                                             initial={{ opacity: 0, y: 10, scale: 0.95 }}
                                             animate={{ opacity: 1, y: 0, scale: 1 }}
                                             exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                                            className="absolute right-0 top-14 w-80 premium-card p-0 shadow-2xl border border-app-border overflow-hidden"
+                                            className="absolute right-0 top-14 w-80 premium-card bg-white p-0 shadow-2xl border border-gray-100 overflow-hidden"
                                         >
                                             <div className="px-5 py-4 border-b border-gray-50 flex justify-between items-center">
                                                 <h4 className="text-[10px] font-black uppercase tracking-widest text-gray-900">System Alerts</h4>
@@ -101,14 +99,6 @@ export default function Navbar({ onMenuToggle }) {
                                     )}
                                 </AnimatePresence>
                             </div>
-
-                            <button
-                                onClick={toggle}
-                                className="w-10 h-10 rounded-2xl flex items-center justify-center text-app-text-tertiary hover:bg-app-bg-secondary hover:text-app-text transition-all shadow-sm border border-transparent hover:border-app-border"
-                                title={dark ? "Switch to Light Mode" : "Switch to Dark Mode"}
-                            >
-                                {dark ? <HiOutlineSun className="w-5 h-5" /> : <HiOutlineMoon className="w-5 h-5" />}
-                            </button>
 
                             <div className="relative" ref={profileRef}>
                                 <button

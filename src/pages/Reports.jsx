@@ -107,14 +107,12 @@ export default function Reports() {
     return (
         <PageTransition>
             <div className="pb-12">
-                <header className="mb-10 lg:px-0">
-                    <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-                        <div className="space-y-1">
-                            <h1 className="text-4xl font-bold tracking-tight text-app-text">Institution Analytics</h1>
-                            <p className="text-app-text-tertiary font-medium tracking-tight">Consolidated performance intelligence and cognitive gap reports</p>
-                        </div>
+                <div className="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-4">
+                    <div>
+                        <h1 className="text-4xl font-bold tracking-tight text-gray-900 mb-2">Audit Laboratory</h1>
+                        <p className="text-gray-500 font-medium tracking-tight">Extract and synthesize high-fidelity academic intelligence reports</p>
                     </div>
-                </header>
+                </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
                     {reportTypes.map((r, i) => (

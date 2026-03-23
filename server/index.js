@@ -11,6 +11,7 @@ const facultyRoutes = require('./routes/faculty');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+const isDev = process.env.NODE_ENV !== 'production';
 
 // Middleware
 app.use(cors());
@@ -29,14 +30,37 @@ app.get('/api/health', (req, res) => {
     res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// Serve static files
-app.use(express.static(path.resolve(__dirname, '../dist')));
+async function startServer() {
+    if (isDev) {
+        // In development, embed Vite's dev server as middleware
+        // so both API and frontend are served from the same port
+        const { createServer: createViteServer } = await import('vite');
+        const vite = await createViteServer({
+            root: path.resolve(__dirname, '..'),
+            server: {
+                middlewareMode: true,
+                headers: {
+                    'Cross-Origin-Opener-Policy': 'same-origin-allow-popups',
+                },
+            },
+            appType: 'spa',
+        });
+        // Use Vite's connect-based middleware
+        app.use(vite.middlewares);
+    } else {
+        // In production, serve the pre-built static files
+        app.use(express.static(path.resolve(__dirname, '../dist')));
+        app.get(/^(?!\/api).+/, (req, res) => {
+            res.sendFile(path.resolve(__dirname, '../dist', 'index.html'));
+        });
+    }
 
-// Fallback to index.html for SPA
-app.get(/^(?!\/api).+/, (req, res) => {
-    res.sendFile(path.resolve(__dirname, '../dist', 'index.html'));
-});
+    app.listen(PORT, () => {
+        console.log(`✅ Server running on http://localhost:${PORT}`);
+        if (isDev) {
+            console.log(`🚀 Frontend + Backend combined on single port ${PORT}`);
+        }
+    });
+}
 
-app.listen(PORT, () => {
-    console.log(`✅ Server running on http://localhost:${PORT}`);
-});
+startServer();

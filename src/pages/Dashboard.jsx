@@ -178,17 +178,15 @@ export default function Dashboard() {
     return (
         <PageTransition>
             <div className="pb-12">
-                <header className="mb-10 px-2 lg:px-0">
-                    <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-                        <div className="space-y-1">
-                            <h1 className="text-4xl font-bold tracking-tight text-app-text">Institution Overview</h1>
-                            <p className="text-app-text-tertiary font-medium tracking-tight">Consolidated real-time academic retention intelligence</p>
-                        </div>
-                        <div className="flex gap-3">
-                            <button className="apple-btn apple-btn-secondary !py-2 !px-4 text-sm font-bold">Download Report</button>
-                        </div>
+                <div className="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-4">
+                    <div>
+                        <h1 className="text-5xl font-bold tracking-tight text-gray-900 mb-2">Academic Overview</h1>
+                        <p className="text-lg text-gray-500 font-medium">Monitoring concept retention across all departments</p>
                     </div>
-                </header>
+                    <div className="flex gap-3">
+                        <button className="apple-btn apple-btn-secondary !py-2 !px-4 text-sm font-bold">Download Report</button>
+                    </div>
+                </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
                     <StatCard title="Active Students" value="1,240" trend={5.2} icon={HiOutlineUserGroup} />
@@ -203,7 +201,7 @@ export default function Dashboard() {
                             <h3 className="font-bold text-lg text-gray-800 tracking-tight">Retention Velocity</h3>
                             <div className="flex gap-2">
                                 <span className="w-3 h-3 rounded-full bg-blue-500"></span>
-                                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Aggregate %</span>
+                                <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">Aggregate %</span>
                             </div>
                         </div>
                         <div className="flex-1">
@@ -248,7 +246,7 @@ export default function Dashboard() {
                                         <div className="text-right flex items-center justify-end gap-3">
                                             {result.isMissed ? (
                                                 <div className="flex items-center gap-1">
-                                                    <p className="font-black text-lg text-rose-500 uppercase tracking-widest">Missed</p>
+                                                    <p className="font-black text-xl text-rose-500 uppercase tracking-widest">Missed</p>
                                                     <button onClick={() => handleDeleteResult(result.id)} className="p-1.5 text-gray-400 hover:text-rose-600 hover:bg-rose-50 rounded bg-transparent transition-all" title="Delete Record">
                                                         <HiOutlineTrash className="w-4 h-4" />
                                                     </button>
@@ -267,7 +265,7 @@ export default function Dashboard() {
                                                 </div>
                                             ) : (
                                                 <>
-                                                    <p className={`font-black text-lg ${result.score >= 70 ? 'text-emerald-500' : 'text-rose-500'}`}>{result.score}%</p>
+                                                    <p className={`font-black text-xl ${result.score >= 70 ? 'text-emerald-500' : 'text-rose-500'}`}>{result.score}%</p>
                                                     <div className="flex items-center gap-1">
                                                         <button onClick={() => { setEditingScoreId(result.id); setEditingScoreValue(result.score); }} className="p-1.5 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded bg-transparent transition-all" title="Edit Score">
                                                             <HiOutlinePencil className="w-4 h-4" />

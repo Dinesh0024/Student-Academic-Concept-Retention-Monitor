@@ -20,6 +20,16 @@ export const subjects = [
     { id: 6, name: 'Digital Electronics', code: 'EC301', department: 'Electronics', semester: 3 },
     { id: 7, name: 'Signal Processing', code: 'EC401', department: 'Electronics', semester: 4 },
     { id: 8, name: 'Thermodynamics', code: 'ME301', department: 'Mechanical', semester: 3 },
+    { id: 9, name: 'Artificial Intelligence', code: 'CS601', department: 'Computer Science', semester: 6 },
+    { id: 10, name: 'Machine Learning', code: 'CS602', department: 'Computer Science', semester: 6 },
+    { id: 11, name: 'Software Engineering', code: 'CS403', department: 'Computer Science', semester: 4 },
+    { id: 12, name: 'Discrete Mathematics', code: 'MA201', department: 'Mathematics', semester: 2 },
+    { id: 13, name: 'Computer Architecture', code: 'CS303', department: 'Computer Science', semester: 3 },
+    { id: 14, name: 'Compiler Design', code: 'CS502', department: 'Computer Science', semester: 5 },
+    { id: 15, name: 'Embedded Systems', code: 'EC501', department: 'Electronics', semester: 5 },
+    { id: 16, name: 'Control Systems', code: 'EC402', department: 'Electronics', semester: 4 },
+    { id: 17, name: 'Fluid Mechanics', code: 'ME302', department: 'Mechanical', semester: 3 },
+    { id: 18, name: 'Structural Analysis', code: 'CE301', department: 'Civil', semester: 3 },
 ];
 
 export const concepts = [
@@ -43,6 +53,26 @@ export const concepts = [
     { id: 18, subjectId: 7, name: 'Z-Transforms', description: 'Discrete-time signals', mastery: 50 },
     { id: 19, subjectId: 8, name: 'Laws of Thermodynamics', description: 'Energy conservation and entropy', mastery: 70 },
     { id: 20, subjectId: 8, name: 'Heat Engines', description: 'Cycles and efficiency', mastery: 60 },
+    { id: 21, subjectId: 9, name: 'Search Algorithms', description: 'A*, heuristic and uninformed search', mastery: 68 },
+    { id: 22, subjectId: 9, name: 'Neural Networks', description: 'Perceptrons with backpropagation', mastery: 52 },
+    { id: 23, subjectId: 10, name: 'Supervised Learning', description: 'Classification and regression models', mastery: 74 },
+    { id: 24, subjectId: 10, name: 'Unsupervised Learning', description: 'Clustering and dimensionality reduction', mastery: 48 },
+    { id: 25, subjectId: 11, name: 'Software Design Patterns', description: 'Creational, structural and behavioral patterns', mastery: 71 },
+    { id: 26, subjectId: 11, name: 'Agile Methodologies', description: 'Scrum, Kanban and CI/CD practices', mastery: 80 },
+    { id: 27, subjectId: 12, name: 'Graph Theory', description: 'Euler paths, Hamiltonian cycles and planarity', mastery: 58 },
+    { id: 28, subjectId: 12, name: 'Propositional Logic', description: 'Truth tables, inference rules and proofs', mastery: 63 },
+    { id: 29, subjectId: 13, name: 'Pipeline Architecture', description: 'Instruction pipelining and hazards', mastery: 66 },
+    { id: 30, subjectId: 13, name: 'Cache Memory', description: 'Cache mapping, replacement and coherence', mastery: 57 },
+    { id: 31, subjectId: 14, name: 'Lexical Analysis', description: 'Tokenization and regular expressions', mastery: 70 },
+    { id: 32, subjectId: 14, name: 'Syntax Parsing', description: 'LL, LR parsers and parse trees', mastery: 44 },
+    { id: 33, subjectId: 15, name: 'Microcontrollers', description: 'Architecture, I/O and programming', mastery: 62 },
+    { id: 34, subjectId: 15, name: 'Real-Time Operating Systems', description: 'Task scheduling and interrupt handling', mastery: 49 },
+    { id: 35, subjectId: 16, name: 'Transfer Functions', description: 'Laplace domain system modeling', mastery: 55 },
+    { id: 36, subjectId: 16, name: 'Stability Analysis', description: 'Routh-Hurwitz and Nyquist criteria', mastery: 42 },
+    { id: 37, subjectId: 17, name: 'Bernoulli\'s Principle', description: 'Pressure and velocity relationship in fluids', mastery: 67 },
+    { id: 38, subjectId: 17, name: 'Viscous Flow', description: 'Laminar and turbulent flow analysis', mastery: 53 },
+    { id: 39, subjectId: 18, name: 'Beam Analysis', description: 'Bending moments and shear force diagrams', mastery: 61 },
+    { id: 40, subjectId: 18, name: 'Truss Structures', description: 'Method of joints and sections', mastery: 56 },
 ];
 
 export const retentionTrendData = {

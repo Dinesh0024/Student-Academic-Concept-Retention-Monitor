@@ -25,14 +25,11 @@ export default function LiveAssessments() {
     return (
         <PageTransition>
             <div className="pb-12">
-                <header className="mb-10 lg:px-0">
-                    <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-                        <div className="space-y-1">
-                            <h1 className="text-4xl font-bold tracking-tight text-app-text">Live Monitoring</h1>
-                            <p className="text-app-text-tertiary font-medium tracking-tight">Real-time candidate diagnostic telemetry</p>
-                        </div>
-                    </div>
-                </header>
+                <div className="mb-10">
+                    <h1 className="text-4xl font-bold tracking-tight text-gray-900 mb-2">Live Assessments</h1>
+                    <p className="text-base text-gray-500 font-medium tracking-tight">Active challenges and dynamically generated evaluations.</p>
+                </div>
+
                 <div className="premium-card p-10 bg-white">
                     <h3 className="text-2xl font-bold text-gray-800 mb-8 flex items-center gap-3">
                         <HiOutlineFire className="w-6 h-6 text-rose-500" />

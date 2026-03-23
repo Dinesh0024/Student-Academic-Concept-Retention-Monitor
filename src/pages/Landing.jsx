@@ -48,7 +48,7 @@ export default function Landing() {
                     </section>
 
                     {/* Features Grid */}
-                    <section className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto mb-32 px-4">
+                    <section className="grid md:grid-cols-3 gap-12 max-w-7xl mx-auto mb-32 px-6">
                         {[
                             {
                                 icon: HiOutlineSparkles,
@@ -90,7 +90,7 @@ export default function Landing() {
                     <section className="grid md:grid-cols-2 gap-12 max-w-6xl mx-auto px-6">
                         <div className="premium-card p-12 bg-white relative overflow-hidden group hover:shadow-2xl transition-all">
                             <div className="absolute top-0 right-0 w-32 h-32 bg-blue-50 rounded-bl-full -mr-16 -mt-16 opacity-50 transition-transform group-hover:scale-110"></div>
-                            <h3 className="text-[10px] font-black text-blue-500 uppercase tracking-[0.3em] mb-6">For Educators</h3>
+                            <h3 className="text-xs font-black text-blue-500 uppercase tracking-[0.3em] mb-6">For Educators</h3>
                             <h2 className="text-3xl font-bold text-gray-900 mb-6 tracking-tight">Precision Instruction Management</h2>
                             <ul className="space-y-4 text-sm font-medium text-gray-500 mb-10">
                                 <li className="flex items-center gap-3">
@@ -113,7 +113,7 @@ export default function Landing() {
 
                         <div className="premium-card p-12 bg-white relative overflow-hidden group hover:shadow-2xl transition-all">
                             <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-50 rounded-bl-full -mr-16 -mt-16 opacity-50 transition-transform group-hover:scale-110"></div>
-                            <h3 className="text-[10px] font-black text-emerald-500 uppercase tracking-[0.3em] mb-6">For Learners</h3>
+                            <h3 className="text-xs font-black text-emerald-500 uppercase tracking-[0.3em] mb-6">For Learners</h3>
                             <h2 className="text-3xl font-bold text-gray-900 mb-6 tracking-tight">Cognitive Retention Path</h2>
                             <ul className="space-y-4 text-sm font-medium text-gray-500 mb-10">
                                 <li className="flex items-center gap-3">
@@ -136,9 +136,9 @@ export default function Landing() {
                     </section>
 
                     {/* System Snapshot */}
-                    <section className="mt-40 max-w-5xl mx-auto px-6">
+                    <section className="mt-40 max-w-7xl mx-auto px-6">
                         <div className="text-center mb-16">
-                            <h3 className="text-[10px] font-black text-blue-500 uppercase tracking-[0.3em] mb-4">Infrastructure Status</h3>
+                            <h3 className="text-xs font-black text-blue-500 uppercase tracking-[0.3em] mb-4">Infrastructure Status</h3>
                             <h2 className="text-4xl font-black text-gray-900 tracking-tighter">Digital Academic Reservoir</h2>
                             <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mt-2">Live synchronization with institutional nodes</p>
                         </div>
@@ -157,9 +157,9 @@ export default function Landing() {
                                     transition={{ delay: i * 0.1 }}
                                     className="premium-card p-10 bg-white text-center border-b-2 border-b-transparent hover:border-b-blue-500 transition-all hover:shadow-2xl hover:shadow-blue-500/5 cursor-default group"
                                 >
-                                    <p className="text-[10px] font-black text-gray-300 uppercase tracking-widest mb-4 group-hover:text-blue-500 transition-colors">{stat.label}</p>
-                                    <h4 className="text-4xl font-black text-gray-900 mb-3 tracking-tighter">{stat.value}</h4>
-                                    <span className="text-[9px] font-black text-blue-500 bg-blue-50 px-3 py-1 rounded-full uppercase tracking-widest">{stat.trend}</span>
+                                    <p className="text-xs font-black text-gray-300 uppercase tracking-widest mb-4 group-hover:text-blue-500 transition-colors">{stat.label}</p>
+                                    <h4 className="text-5xl font-black text-gray-900 mb-3 tracking-tighter">{stat.value}</h4>
+                                    <span className="text-[11px] font-black text-blue-500 bg-blue-50 px-3 py-1 rounded-full uppercase tracking-widest">{stat.trend}</span>
                                 </motion.div>
                             ))}
                         </div>
@@ -181,7 +181,7 @@ export default function Landing() {
                 </main>
 
                 <footer className="py-12 border-t border-gray-50 bg-white">
-                    <div className="apple-container flex flex-col md:flex-row justify-between items-center text-[10px] font-bold uppercase tracking-widest text-gray-300">
+                    <div className="apple-container flex flex-col md:flex-row justify-between items-center text-xs font-bold uppercase tracking-widest text-gray-300">
                         <p>© 2026 StudentRetain. Optimal Instruction Delivery.</p>
                         <div className="flex gap-8 mt-4 md:mt-0">
                             <a href="#" className="hover:text-gray-900 transition-colors">Privacy</a>

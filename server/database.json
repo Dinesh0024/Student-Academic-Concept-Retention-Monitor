@@ -1,0 +1,77 @@
+{
+  "students": [
+    {
+      "id": 1,
+      "created_at": "2026-03-13T03:43:46.741Z",
+      "name": "Test Student",
+      "email": "test@example.com",
+      "enrollment_no": "ENR123",
+      "department": "Computer Science",
+      "semester": "1",
+      "password_hash": "$2b$10$vJf0zroEgK9cOLW9cgZ8deOnNwNyy41BXLEwnmsRBoQcF6poAVfCu"
+    },
+    {
+      "id": 2,
+      "created_at": "2026-03-16T06:06:04.074Z",
+      "name": "Test Student 2",
+      "email": "student2@test.com",
+      "enrollment_no": "ST002",
+      "department": "Computer Science",
+      "semester": "1",
+      "password_hash": "$2b$10$eF4eclFBfYvv01vh.BWnkOeLNbIEbkadQNH9zs0lQaVgxjqkJhupG"
+    },
+    {
+      "id": 3,
+      "created_at": "2026-03-16T06:37:55.205Z",
+      "name": "EN777",
+      "email": "dinesh_final@example.com",
+      "enrollment_no": "final@tEN123456789est.com",
+      "department": "Information Tech",
+      "semester": "1",
+      "password_hash": "$2b$10$BCvekmkrARoBN6dV7MWKNu9JGFFdew31eV5q04tHI.iRx9YKyOl3u"
+    }
+  ],
+  "faculty": [
+    {
+      "id": 1,
+      "created_at": "2026-03-13T09:29:30.826Z",
+      "name": "Dr. Smith",
+      "email": "smith@college.edu",
+      "designation": "Professor",
+      "password_hash": "$2b$10$B.XFrfwu45ahbK4GIkpWcOJUmj3TqSzs3bZIje2vyGLWLatz2NVrO"
+    },
+    {
+      "id": 2,
+      "created_at": "2026-03-13T10:41:10.298Z",
+      "name": "Dr. Smith",
+      "email": "smith2@college.edu",
+      "designation": "Professor",
+      "password_hash": "$2b$10$W3JCRwzatF/fWziKaiiKqu/HQv8TELK1tfeUwtbcr7hBpphj6g4Ju"
+    }
+  ],
+  "subjects": [],
+  "concepts": [],
+  "questions": [],
+  "tests": [
+    {
+      "id": 1,
+      "name": "Data Structures Baseline"
+    }
+  ],
+  "test_attempts": [
+    {
+      "id": 1,
+      "student_id": 1,
+      "test_id": 1,
+      "score": 92,
+      "completed_at": "2026-03-13T04:12:50.327Z",
+      "teacher_feedback": "",
+      "ai_drawbacks": "Speed and memory optimization issues.",
+      "ai_solutions": "Review Big O notation and memory management concepts."
+    }
+  ],
+  "student_answers": [],
+  "student_concept_performance": [],
+  "retention_scores": [],
+  "notifications": []
+}
