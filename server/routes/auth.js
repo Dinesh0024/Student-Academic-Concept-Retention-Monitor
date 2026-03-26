@@ -82,6 +82,16 @@ router.get('/profile/:email', async (req, res) => {
         const requestedRole = req.query.role; // e.g., 'student' or 'faculty'
 
         try {
+            // Priority check: If a role is requested, check that table first
+            if (requestedRole === 'faculty') {
+                let facultyRes = await pool.query('SELECT name, email, designation FROM faculty WHERE email = $1', [email]);
+                if (facultyRes.rows.length > 0) return res.json({ ...facultyRes.rows[0], role: 'faculty' });
+            } else if (requestedRole === 'student') {
+                let studentRes = await pool.query('SELECT name, email FROM students WHERE email = $1', [email]);
+                if (studentRes.rows.length > 0) return res.json({ ...studentRes.rows[0], role: 'student' });
+            }
+
+            // Fallback: Original sequential check if no role requested or not found in requested table
             // Check students table
             let result = await pool.query('SELECT name, email FROM students WHERE email = $1', [email]);
             if (result.rows.length > 0) {

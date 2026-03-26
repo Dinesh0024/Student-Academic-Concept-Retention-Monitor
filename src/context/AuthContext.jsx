@@ -15,6 +15,11 @@ export function AuthProvider({ children }) {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
+        // Set persistence to session (per tab) to allow multiple accounts
+        import('firebase/auth').then(({ setPersistence, browserSessionPersistence }) => {
+            setPersistence(auth, browserSessionPersistence);
+        });
+
         // Handle redirect result from Google sign-in (fallback flow)
         getRedirectResult(auth).then((result) => {
             if (result?.user) {
@@ -28,7 +33,7 @@ export function AuthProvider({ children }) {
             if (firebaseUser) {
                 // Fetch additional profile data from our PG backend
                 try {
-                    const intendedRole = localStorage.getItem('intended_role');
+                    const intendedRole = sessionStorage.getItem('intended_role');
                     const roleQuery = intendedRole ? `?role=${intendedRole}` : '';
                     const response = await fetch(`/api/auth/profile/${firebaseUser.email}${roleQuery}`);
                     const userData = await response.json();
@@ -44,7 +49,7 @@ export function AuthProvider({ children }) {
                     }
                 } catch (err) {
                     console.error("Failed to fetch profile:", err);
-                    const intendedRole = localStorage.getItem('intended_role');
+                    const intendedRole = sessionStorage.getItem('intended_role');
                     setUser({ ...firebaseUser, role: intendedRole || 'student' }); // Use intended role as safety fallback
                 }
             } else {
@@ -88,6 +93,7 @@ export function AuthProvider({ children }) {
         await signOut(auth);
         localStorage.removeItem('user');
         localStorage.removeItem('token');
+        sessionStorage.removeItem('intended_role');
     };
 
     return (

@@ -18,6 +18,10 @@ export default function LiveAssessments() {
             setAllTests(tests);
         };
         fetchTests();
+
+        // Polling interval for real-time synchronization with Faculty deployments
+        const interval = setInterval(fetchTests, 5000);
+        return () => clearInterval(interval);
     }, []);
 
     const aiLiveAssessments = allTests.filter(t => t.isLive);

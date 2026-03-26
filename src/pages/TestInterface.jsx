@@ -103,6 +103,7 @@ export default function TestInterface() {
     const [timeLeft, setTimeLeft] = useState(realTest.duration * 60);
     const [missedReason, setMissedReason] = useState('');
     const [lateReason, setLateReason] = useState('');
+    const [reasonConfirmed, setReasonConfirmed] = useState(false);
 
 
     const handleMissedSubmit = async () => {
@@ -321,22 +322,30 @@ export default function TestInterface() {
                         {windowStatus === 'within' && (
                             <>
                                 {(!realTest.time || !realTest.endTime) && (
-                                    <div className="bg-blue-50/50 rounded-2xl p-6 border border-blue-100 mb-8 text-left">
+                                    <div className={`bg-blue-50/50 rounded-2xl p-6 border border-blue-100 transition-all duration-500 overflow-hidden ${reasonConfirmed ? 'mb-0 opacity-0 max-h-0 py-0 border-none' : 'mb-8 opacity-100 max-h-[300px]'}`}>
                                         <p className="text-[10px] font-black text-blue-600 uppercase tracking-widest mb-2">Untimed Assessment Audit</p>
                                         <p className="text-xs font-bold text-blue-800/80 mb-3">Please provide a reason for taking this untimed or retroactive assessment before initializing.</p>
                                         <textarea
-                                            className="apple-input w-full min-h-[80px] text-sm"
+                                            className="apple-input w-full min-h-[80px] text-sm mb-4"
                                             placeholder="Enter reason..."
                                             value={lateReason}
                                             onChange={(e) => setLateReason(e.target.value)}
                                             required
                                         ></textarea>
+                                        <button
+                                            type="button"
+                                            onClick={() => setReasonConfirmed(true)}
+                                            disabled={!lateReason.trim()}
+                                            className="apple-btn apple-btn-primary !py-2 !px-6 !text-[10px] !bg-blue-600 disabled:opacity-50"
+                                        >
+                                            Confirm Purpose
+                                        </button>
                                     </div>
                                 )}
                                 <button
                                     onClick={() => setStarted(true)}
                                     className="apple-btn apple-btn-primary !text-xs !font-black !uppercase !tracking-[0.2em] !px-16 !py-4 shadow-2xl shadow-blue-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
-                                    disabled={(!realTest.time || !realTest.endTime) && !lateReason.trim()}
+                                    disabled={(!realTest.time || !realTest.endTime) && !reasonConfirmed}
                                 >
                                     Initialize Session
                                 </button>

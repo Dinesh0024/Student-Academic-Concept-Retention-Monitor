@@ -36,7 +36,7 @@ export default function Signup() {
 
         try {
             // Store the intended role for fallback during profile fetch
-            localStorage.setItem('intended_role', roleParam);
+            sessionStorage.setItem('intended_role', roleParam);
 
             // 1. Create user in Firebase
             await signup(formData.email, formData.password);
@@ -71,7 +71,7 @@ export default function Signup() {
     const handleGoogleSignUp = async () => {
         try {
             setLoading(true);
-            localStorage.setItem('intended_role', roleParam);
+            sessionStorage.setItem('intended_role', roleParam);
             const userCredential = await loginWithGoogle();
 
             // Sync with backend on signup

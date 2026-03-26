@@ -60,14 +60,37 @@ const staticResults = [
 export const mockDb = {
     // Tests API
     getTests: async () => {
-        return Promise.resolve(assignedTests);
+        const stored = localStorage.getItem('stored_tests');
+        if (!stored) {
+            localStorage.setItem('stored_tests', JSON.stringify(assignedTests));
+            return Promise.resolve(assignedTests);
+        }
+        return Promise.resolve(JSON.parse(stored));
     },
 
     saveTest: async (test) => {
+        const stored = localStorage.getItem('stored_tests');
+        const tests = stored ? JSON.parse(stored) : [...assignedTests];
+        
+        // Update existing or add new
+        const index = tests.findIndex(t => t.id === test.id);
+        if (index >= 0) {
+            tests[index] = test;
+        } else {
+            tests.push(test);
+        }
+        
+        localStorage.setItem('stored_tests', JSON.stringify(tests));
         return Promise.resolve(test);
     },
 
     deleteTest: async (testId) => {
+        const stored = localStorage.getItem('stored_tests');
+        if (stored) {
+            const tests = JSON.parse(stored);
+            const filtered = tests.filter(t => t.id !== testId && t.id?.toString() !== testId?.toString());
+            localStorage.setItem('stored_tests', JSON.stringify(filtered));
+        }
         return Promise.resolve();
     },
 
@@ -112,11 +135,24 @@ export const mockDb = {
 
     // Results API
     getResults: async () => {
-        return Promise.resolve(staticResults);
+        const stored = localStorage.getItem('stored_results');
+        const results = stored ? JSON.parse(stored) : [];
+        return Promise.resolve([...staticResults, ...results]);
     },
 
     saveResult: async (result) => {
-        return Promise.resolve(result);
+        const stored = localStorage.getItem('stored_results');
+        const results = stored ? JSON.parse(stored) : [];
+        
+        const resultWithId = { 
+            ...result, 
+            id: result.id || `res_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+            timestamp: new Date().toISOString()
+        };
+        
+        results.push(resultWithId);
+        localStorage.setItem('stored_results', JSON.stringify(results));
+        return Promise.resolve(resultWithId);
     },
 
     getResultsByStudent: async (studentEmail) => {

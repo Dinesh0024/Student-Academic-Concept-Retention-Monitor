@@ -29,6 +29,7 @@ const facultyLinks = [
     { to: '/faculty/concepts', icon: HiOutlineLightBulb, label: 'Knowledge Graph' },
     { to: '/faculty/questions', icon: HiOutlineDocumentText, label: 'AI Generator' },
     { to: '/faculty/tests', icon: HiOutlineCalendar, label: 'Scheduler' },
+    { to: '/faculty/attendance', icon: HiOutlineUserGroup, label: 'Attendance' },
     { to: '/faculty/reports', icon: HiOutlineDocumentReport, label: 'Analytics' },
     { to: '/faculty/settings', icon: HiOutlineCog, label: 'Settings' },
 ];

@@ -28,7 +28,7 @@ export default function Login() {
 
         try {
             // Store the intended role for fallback during profile fetch
-            localStorage.setItem('intended_role', roleParam);
+            sessionStorage.setItem('intended_role', roleParam);
             await login(formData.email, formData.password);
             toast.success(`Welcome back!`);
         } catch (err) {
@@ -46,7 +46,7 @@ export default function Login() {
     const handleGoogleSignIn = async () => {
         try {
             setLoading(true);
-            localStorage.setItem('intended_role', roleParam);
+            sessionStorage.setItem('intended_role', roleParam);
             await loginWithGoogle();
             toast.success(`Welcome back!`);
         } catch (err) {

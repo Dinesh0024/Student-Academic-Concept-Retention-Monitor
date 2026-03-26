@@ -81,8 +81,8 @@ export default function StudentDashboard() {
             <div className="pb-12">
                 <div className="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-4">
                     <div>
-                        <h1 className="text-4xl md:text-5xl font-black tracking-tight text-gray-900 mb-2">My Learning Path</h1>
-                        <p className="text-base md:text-lg text-gray-500 font-medium tracking-tight">Welcome back, {user?.name || 'Student'}. Here is your retention summary.</p>
+                        <h1 className="text-4xl md:text-5xl font-black tracking-tight text-gray-900 dark:text-white mb-2">My Learning Path</h1>
+                        <p className="text-base md:text-lg text-gray-500 dark:text-slate-400 font-medium tracking-tight">Welcome back, {user?.name || 'Student'}. Here is your retention summary.</p>
                     </div>
                 </div>
 
@@ -94,45 +94,45 @@ export default function StudentDashboard() {
                 </div>
 
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
-                    <Link to="/student/concepts" className="premium-card p-6 bg-white hover:bg-emerald-50 border-b-4 border-b-emerald-500 transition-all group">
+                    <Link to="/student/concepts" className="premium-card p-6 bg-white dark:bg-[#13111C]/80 dark:backdrop-blur-2xl border border-transparent dark:border-white/5 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 border-b-4 border-b-emerald-500 transition-all group">
                         <HiOutlineLightBulb className="w-8 h-8 text-emerald-500 mb-3 group-hover:scale-110 transition-transform" />
-                        <h4 className="font-bold text-gray-900 text-sm">Knowledge Map</h4>
-                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">Concept Mastery</p>
+                        <h4 className="font-bold text-gray-900 dark:text-white text-sm">Knowledge Map</h4>
+                        <p className="text-[10px] font-bold text-gray-400 dark:text-slate-400 uppercase tracking-widest mt-1">Concept Mastery</p>
                     </Link>
-                    <Link to="/student/reports" className="premium-card p-6 bg-white hover:bg-blue-50 border-b-4 border-b-blue-500 transition-all group">
+                    <Link to="/student/reports" className="premium-card p-6 bg-white dark:bg-[#13111C]/80 dark:backdrop-blur-2xl border border-transparent dark:border-white/5 hover:bg-blue-50 dark:hover:bg-blue-500/10 border-b-4 border-b-blue-500 transition-all group">
                         <HiOutlineDocumentReport className="w-8 h-8 text-blue-500 mb-3 group-hover:scale-110 transition-transform" />
-                        <h4 className="font-bold text-gray-900 text-sm">Academic Matrix</h4>
-                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">Performance Audit</p>
+                        <h4 className="font-bold text-gray-900 dark:text-white text-sm">Academic Matrix</h4>
+                        <p className="text-[10px] font-bold text-gray-400 dark:text-slate-400 uppercase tracking-widest mt-1">Performance Audit</p>
                     </Link>
-                    <Link to="/student/assessments" className="premium-card p-6 bg-white hover:bg-indigo-50 border-b-4 border-b-indigo-500 transition-all group">
+                    <Link to="/student/assessments" className="premium-card p-6 bg-white dark:bg-[#13111C]/80 dark:backdrop-blur-2xl border border-transparent dark:border-white/5 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 border-b-4 border-b-indigo-500 transition-all group">
                         <HiOutlineCheckCircle className="w-8 h-8 text-indigo-500 mb-3 group-hover:scale-110 transition-transform" />
-                        <h4 className="font-bold text-gray-900 text-sm">Assessments</h4>
-                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">Live Testing</p>
+                        <h4 className="font-bold text-gray-900 dark:text-white text-sm">Assessments</h4>
+                        <p className="text-[10px] font-bold text-gray-400 dark:text-slate-400 uppercase tracking-widest mt-1">Live Testing</p>
                     </Link>
-                    <Link to="/student/settings" className="premium-card p-6 bg-white hover:bg-gray-50 border-b-4 border-b-gray-900 transition-all group">
-                        <HiOutlineCog className="w-8 h-8 text-gray-900 mb-3 group-hover:scale-110 transition-transform" />
-                        <h4 className="font-bold text-gray-900 text-sm">Portal Settings</h4>
-                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">Preferences</p>
+                    <Link to="/student/settings" className="premium-card p-6 bg-white dark:bg-[#13111C]/80 dark:backdrop-blur-2xl border border-transparent dark:border-white/5 hover:bg-gray-50 dark:hover:bg-white/5 border-b-4 border-b-gray-900 dark:border-b-white/20 transition-all group">
+                        <HiOutlineCog className="w-8 h-8 text-gray-900 dark:text-slate-200 mb-3 group-hover:scale-110 transition-transform" />
+                        <h4 className="font-bold text-gray-900 dark:text-white text-sm">Portal Settings</h4>
+                        <p className="text-[10px] font-bold text-gray-400 dark:text-slate-400 uppercase tracking-widest mt-1">Preferences</p>
                     </Link>
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     <div className="lg:col-span-2 space-y-8">
                         {/* Upcoming Assessments */}
-                        <div className="premium-card p-8 bg-white">
-                            <h3 className="text-lg font-bold text-gray-800 mb-6 flex items-center gap-2">
+                        <div className="premium-card p-8 bg-white dark:bg-[#13111C]/80 dark:backdrop-blur-2xl border border-transparent dark:border-white/5">
+                            <h3 className="text-lg font-bold text-gray-800 dark:text-white mb-6 flex items-center gap-2">
                                 <HiOutlineClock className="w-5 h-5 text-[var(--color-accent)]" />
                                 Pending Assessments
                             </h3>
                             <div className="space-y-4">
                                 {upcomingTests.length === 0 ? (
-                                    <p className="text-sm text-gray-400 font-medium">No pending assessments at this time.</p>
+                                    <p className="text-sm text-gray-400 dark:text-slate-400 font-medium">No pending assessments at this time.</p>
                                 ) : (
                                     upcomingTests.map((t) => (
-                                        <div key={t.id} className="flex flex-col sm:flex-row justify-between items-center p-5 rounded-2xl bg-gray-50/50 border border-gray-100 group hover:bg-white hover:shadow-xl hover:shadow-emerald-500/5 transition-all duration-500">
+                                        <div key={t.id} className="flex flex-col sm:flex-row justify-between items-center p-5 rounded-2xl bg-gray-50/50 dark:bg-white/5 border border-gray-100 dark:border-white/10 group hover:bg-white dark:hover:bg-white/10 hover:shadow-xl hover:shadow-emerald-500/5 transition-all duration-500">
                                             <div className="mb-4 sm:mb-0">
-                                                <h4 className="font-bold text-gray-800 tracking-tight">{t.name}</h4>
-                                                <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mt-1">{t.subject} • {new Date(t.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} • {t.time}</p>
+                                                <h4 className="font-bold text-gray-800 dark:text-white tracking-tight">{t.name}</h4>
+                                                <p className="text-xs font-bold text-gray-400 dark:text-slate-400 uppercase tracking-widest mt-1">{t.subject} • {new Date(t.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} • {t.time}</p>
                                             </div>
                                             <Link to="/student/test" state={{ testConfig: t }} className="apple-btn apple-btn-primary !py-2.5 !px-8 text-sm !bg-emerald-500 hover:!bg-emerald-600">Launch Test</Link>
                                         </div>
@@ -142,9 +142,9 @@ export default function StudentDashboard() {
                         </div>
 
                         {/* Concept Weakness - Dynamic Drawbacks */}
-                        <div className="premium-card p-10 bg-white border-l-8 border-l-rose-500 shadow-xl shadow-rose-500/5">
-                            <h3 className="text-2xl font-black text-gray-800 mb-3 tracking-tight">Attention Required</h3>
-                            <p className="text-base font-medium text-gray-500 mb-8">
+                        <div className="premium-card p-10 bg-white dark:bg-[#13111C]/80 dark:backdrop-blur-2xl border-l-8 border-l-rose-500 dark:border-y-white/5 dark:border-r-white/5 flex flex-col shadow-xl shadow-rose-500/5">
+                            <h3 className="text-2xl font-black text-gray-800 dark:text-white mb-3 tracking-tight">Attention Required</h3>
+                            <p className="text-base font-medium text-gray-500 dark:text-slate-400 mb-8">
                                 {pastResults.length > 0 && weakTopics[0]?.name !== 'Dynamic Programming'
                                     ? "Automated diagnostics identified critical gaps based on your recent assessments:"
                                     : "Automated diagnostics identified critical gaps in the following fundamental concepts:"}
@@ -152,19 +152,19 @@ export default function StudentDashboard() {
 
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                                 {weakTopics.map((topic, i) => (
-                                    <div key={i} className="p-6 rounded-3xl bg-rose-50/50 border border-rose-100 hover:bg-rose-50 hover:shadow-lg hover:shadow-rose-500/10 transition-all duration-300">
+                                    <div key={i} className="p-6 rounded-3xl bg-rose-50/50 dark:bg-rose-500/10 border border-rose-100 dark:border-rose-500/20 hover:bg-rose-50 dark:hover:bg-rose-500/20 hover:shadow-lg hover:shadow-rose-500/10 transition-all duration-300">
                                         <div className="flex justify-between items-center mb-4">
-                                            <span className="text-base font-bold text-gray-900">{topic.name}</span>
-                                            <span className="text-sm font-black text-rose-500 bg-rose-100 px-3 py-1 rounded-xl">{topic.mastery}% Retention</span>
+                                            <span className="text-base font-bold text-gray-900 dark:text-white">{topic.name}</span>
+                                            <span className="text-sm font-black text-rose-500 dark:text-rose-400 bg-rose-100 dark:bg-rose-500/20 px-3 py-1 rounded-xl">{topic.mastery}% Retention</span>
                                         </div>
-                                        <div className="w-full h-2.5 bg-rose-200/50 rounded-full overflow-hidden mb-3">
+                                        <div className="w-full h-2.5 bg-rose-200/50 dark:bg-rose-900/50 rounded-full overflow-hidden mb-3">
                                             <motion.div
                                                 initial={{ width: 0 }}
                                                 animate={{ width: `${topic.mastery}%` }}
-                                                className="h-full bg-rose-500"
+                                                className="h-full bg-rose-500 dark:bg-rose-400"
                                             />
                                         </div>
-                                        <p className="text-[11px] font-black text-gray-400 uppercase tracking-widest">{topic.subject}</p>
+                                        <p className="text-[11px] font-black text-gray-400 dark:text-slate-400 uppercase tracking-widest">{topic.subject}</p>
                                     </div>
                                 ))}
                             </div>
@@ -175,21 +175,21 @@ export default function StudentDashboard() {
 
                     <div className="space-y-8">
                         {/* History */}
-                        <div className="premium-card p-8 bg-white">
-                            <h3 className="text-lg font-bold text-gray-800 mb-6 flex items-center gap-2">
+                        <div className="premium-card p-8 bg-white dark:bg-[#13111C]/80 dark:backdrop-blur-2xl border border-transparent dark:border-white/5">
+                            <h3 className="text-lg font-bold text-gray-800 dark:text-white mb-6 flex items-center gap-2">
                                 <HiOutlineBookOpen className="w-5 h-5 text-[var(--color-accent)]" />
                                 Previous Scores
                             </h3>
                             <div className="space-y-4">
                                 {pastResults.length === 0 ? (
-                                    <p className="text-sm text-gray-400 font-medium">No completed assessments yet.</p>
+                                    <p className="text-sm text-gray-400 dark:text-slate-400 font-medium">No completed assessments yet.</p>
                                 ) : (
                                     pastResults.map((r) => (
-                                        <div key={r.id} className="flex flex-col p-4 bg-gray-50/50 rounded-xl transition-colors border border-gray-100 group">
+                                        <div key={r.id} className="flex flex-col p-4 bg-gray-50/50 dark:bg-white/5 rounded-xl transition-colors border border-gray-100 dark:border-white/10 group">
                                             <div className="flex justify-between items-center mb-2">
                                                 <div>
-                                                    <h4 className="text-sm font-bold text-gray-800">{r.testName}</h4>
-                                                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">{new Date(r.timestamp).toLocaleDateString()}</p>
+                                                    <h4 className="text-sm font-bold text-gray-800 dark:text-white">{r.testName}</h4>
+                                                    <p className="text-[10px] font-bold text-gray-400 dark:text-slate-400 uppercase tracking-tighter">{new Date(r.timestamp).toLocaleDateString()}</p>
                                                 </div>
                                                 <div className={`text-sm font-black ${r.score >= 70 ? 'text-emerald-500' : 'text-amber-500'}`}>
                                                     {r.score}%
@@ -197,20 +197,20 @@ export default function StudentDashboard() {
                                             </div>
                                             {r.aiDrawbacks && (
                                                 <div className="mt-3 space-y-2">
-                                                    <div className="p-3 bg-rose-50 border border-rose-100 rounded-xl">
-                                                        <p className="text-[10px] font-bold text-rose-500 uppercase tracking-widest mb-1">Identified Fault</p>
-                                                        <p className="text-[11px] font-medium text-rose-800">{r.aiDrawbacks}</p>
+                                                    <div className="p-3 bg-rose-50 dark:bg-rose-500/10 border border-rose-100 dark:border-rose-500/20 rounded-xl">
+                                                        <p className="text-[10px] font-bold text-rose-500 dark:text-rose-400 uppercase tracking-widest mb-1">Identified Fault</p>
+                                                        <p className="text-[11px] font-medium text-rose-800 dark:text-rose-200">{r.aiDrawbacks}</p>
                                                     </div>
-                                                    <div className="p-3 bg-emerald-50 border border-emerald-100 rounded-xl">
-                                                        <p className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest mb-1">Recommended Solution</p>
-                                                        <p className="text-[11px] font-medium text-emerald-800">{r.aiSolutions}</p>
+                                                    <div className="p-3 bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-100 dark:border-emerald-500/20 rounded-xl">
+                                                        <p className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-widest mb-1">Recommended Solution</p>
+                                                        <p className="text-[11px] font-medium text-emerald-800 dark:text-emerald-200">{r.aiSolutions}</p>
                                                     </div>
                                                 </div>
                                             )}
                                             {r.teacherFeedback && (
-                                                <div className="mt-3 p-3 bg-blue-50 border border-blue-100 rounded-xl">
-                                                    <p className="text-[10px] font-bold text-blue-600 uppercase tracking-widest mb-1">Faculty Feedback</p>
-                                                    <p className="text-[11px] font-medium text-blue-800">{r.teacherFeedback}</p>
+                                                <div className="mt-3 p-3 bg-blue-50 dark:bg-blue-500/10 border border-blue-100 dark:border-blue-500/20 rounded-xl">
+                                                    <p className="text-[10px] font-bold text-blue-600 dark:text-blue-400 uppercase tracking-widest mb-1">Faculty Feedback</p>
+                                                    <p className="text-[11px] font-medium text-blue-800 dark:text-blue-200">{r.teacherFeedback}</p>
                                                 </div>
                                             )}
                                         </div>
@@ -220,9 +220,9 @@ export default function StudentDashboard() {
                         </div>
 
                         {/* Leaderboard */}
-                        <div className="premium-card p-8 bg-blue-600 text-white shadow-blue-500/20">
+                        <div className="premium-card p-8 bg-blue-600 dark:bg-[#13111C]/80 dark:backdrop-blur-2xl border border-transparent dark:border-blue-500/30 text-white shadow-blue-500/20 dark:shadow-blue-500/10">
                             <h3 className="text-lg font-bold mb-1">Global Ranking</h3>
-                            <p className="text-xs font-medium text-blue-100 mb-6 opacity-80 uppercase tracking-widest">Department Benchmarking</p>
+                            <p className="text-xs font-medium text-blue-100 dark:text-blue-300 mb-6 opacity-80 uppercase tracking-widest">Department Benchmarking</p>
 
                             <div className="space-y-3">
                                 {[
@@ -231,9 +231,9 @@ export default function StudentDashboard() {
                                     { name: `${user?.name || 'Student'} (You)`, score: 88, isCurrent: true },
                                     { name: 'David K.', score: 82, isCurrent: false },
                                 ].map((p, i) => (
-                                    <div key={i} className={`flex justify-between p-3 rounded-xl transition-all ${p.isCurrent ? 'bg-white text-blue-600 shadow-lg scale-105' : 'bg-white/10 text-white'}`}>
+                                    <div key={i} className={`flex justify-between p-3 rounded-xl transition-all ${p.isCurrent ? 'bg-white dark:bg-blue-500 text-blue-600 dark:text-white shadow-lg dark:shadow-blue-500/30 scale-105' : 'bg-white/10 dark:bg-white/5 text-white'}`}>
                                         <div className="flex items-center gap-3">
-                                            <span className={`text-xs font-black w-4 ${p.isCurrent ? 'text-blue-600' : 'text-blue-200'}`}>#{i + 1}</span>
+                                            <span className={`text-xs font-black w-4 ${p.isCurrent ? 'text-blue-600 dark:text-white' : 'text-blue-200 dark:text-blue-400'}`}>#{i + 1}</span>
                                             <span className={`text-sm ${p.isCurrent ? 'font-bold' : 'font-medium opacity-90'}`}>{p.name}</span>
                                         </div>
                                         <span className={`text-sm font-black ${p.isCurrent ? '' : 'opacity-90'}`}>{p.score}%</span>

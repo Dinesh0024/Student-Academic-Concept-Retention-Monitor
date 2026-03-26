@@ -131,7 +131,7 @@ export default function QuestionGenerator() {
             date: new Date().toISOString().split('T')[0],
             time: deployStartTime,
             endTime: deployEndTime,
-            duration: generatedQuestions.length * 2, // 2 mins per question
+            duration: generatedQuestions.length * 1, // 1 min per question
             status: 'Upcoming',
             numQuestions: generatedQuestions.length,
             isLive: true,
