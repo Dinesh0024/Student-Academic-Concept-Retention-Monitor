@@ -47,6 +47,14 @@
       "email": "smith2@college.edu",
       "designation": "Professor",
       "password_hash": "$2b$10$W3JCRwzatF/fWziKaiiKqu/HQv8TELK1tfeUwtbcr7hBpphj6g4Ju"
+    },
+    {
+      "id": 3,
+      "created_at": "2026-03-26T05:59:30.388Z",
+      "name": "Faculty User",
+      "email": "facultyV2@college.edu",
+      "designation": "Professor",
+      "password_hash": "$2b$10$K3IB3K4dQFc3wZjAM6ydXun2lyDKEGFzapFKWSJLtlm.AwS0u.edW"
     }
   ],
   "subjects": [],

@@ -10,6 +10,7 @@ import StatCard from '../components/StatCard';
 import Modal from '../components/Modal';
 import mockDb from '../utils/mockDb';
 import { getRetentionLevel } from '../utils/analytics';
+import { conceptInsights } from '../data/mockData';
 import toast from 'react-hot-toast';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, ArcElement, Title, Tooltip, Legend, Filler);
@@ -231,7 +232,15 @@ export default function Dashboard() {
                         <div className="space-y-6">
                             {results.length === 0 ? (
                                 <p className="text-sm font-medium text-gray-400 text-center py-10">No tests submitted yet.</p>
-                            ) : results.map((result) => (
+                            ) : results.map((result) => {
+                                const student = students.find(s => s.name === result.studentName || s.email === result.studentEmail);
+                                const weakConceptsList = student?.weakConcepts || [];
+                                const recommendations = weakConceptsList.map(cid => ({
+                                    ...conceptInsights[cid],
+                                    name: concepts.find(c => c.id == cid)?.name || 'Technical Concept'
+                                })).filter(r => r.fault);
+
+                                return (
                                 <div key={result.id} className="p-5 bg-gray-50/50 rounded-2xl border border-gray-100 hover:shadow-xl transition-all">
                                     <div className="flex justify-between items-center mb-4">
                                         <div className="flex items-center gap-4">
@@ -296,7 +305,39 @@ export default function Dashboard() {
                                             <p className="text-xs font-medium text-gray-600 leading-relaxed mb-3">{result.aiDrawbacks}</p>
                                             <div className="h-px bg-gray-50 mb-3"></div>
                                             <p className="text-[10px] font-bold text-emerald-500 uppercase tracking-widest mb-1">AI Solution Route & Improvements</p>
-                                            <p className="text-xs font-medium text-gray-600 leading-relaxed">{result.aiSolutions}</p>
+                                            <p className="text-xs font-medium text-gray-600 leading-relaxed mb-4">{result.aiSolutions}</p>
+
+                                            {recommendations.length > 0 && (
+                                                <div className="mt-6 p-5 bg-gradient-to-br from-blue-50/80 to-indigo-50/80 rounded-2xl border border-blue-100 shadow-inner">
+                                                    <div className="flex items-center gap-2 mb-4">
+                                                        <div className="w-8 h-8 rounded-xl bg-blue-500 flex items-center justify-center text-white shadow-lg shadow-blue-500/20">
+                                                            <HiOutlineLightBulb className="w-5 h-5" />
+                                                        </div>
+                                                        <div>
+                                                            <p className="text-[10px] font-black text-blue-600 uppercase tracking-[0.2em] leading-none mb-1">Faculty Suggestion Engine</p>
+                                                            <p className="text-[9px] font-bold text-blue-400 uppercase tracking-wider leading-none">AI-Assisted Intervention Strategy</p>
+                                                        </div>
+                                                    </div>
+                                                    <div className="space-y-4">
+                                                        {recommendations.map((rec, idx) => (
+                                                            <div key={idx} className="bg-white/80 backdrop-blur-sm p-4 rounded-xl border border-white shadow-sm hover:shadow-md transition-shadow">
+                                                                <div className="flex items-center justify-between mb-2">
+                                                                    <p className="text-[9px] font-black text-indigo-400 uppercase tracking-[0.1em]">Domain: {rec.name}</p>
+                                                                    <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+                                                                </div>
+                                                                <div className="mb-3">
+                                                                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Core Deficiency</p>
+                                                                    <p className="text-xs font-medium text-gray-700 leading-relaxed italic border-l-2 border-amber-200 pl-3">{rec.fault}</p>
+                                                                </div>
+                                                                <div>
+                                                                    <p className="text-[10px] font-black text-emerald-500 uppercase tracking-widest mb-1">Intervention Strategy</p>
+                                                                    <p className="text-xs font-bold text-emerald-800 leading-relaxed bg-emerald-50/50 p-2 rounded-lg border border-emerald-100/50">{rec.solution}</p>
+                                                                </div>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            )}
                                         </div>
                                     )}
 
@@ -325,7 +366,7 @@ export default function Dashboard() {
                                         </div>
                                     )}
                                 </div>
-                            ))}
+                            )})}
                         </div>
                     </div>
 
