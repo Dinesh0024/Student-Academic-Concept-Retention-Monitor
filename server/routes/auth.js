@@ -6,12 +6,13 @@ const { JWT_SECRET } = require('../middleware/auth');
 
 const router = express.Router();
 
-// Generate a random 6-digit OTP (Mock for now, could be used for email later)
-const generateOTP = () => Math.floor(100000 + Math.random() * 900000).toString();
-const otpStore = new Map();
+const AUTHORIZED_STUDENT = process.env.AUTHORIZED_STUDENT || 'test@example.com';
+const AUTHORIZED_FACULTY = process.env.AUTHORIZED_FACULTY || 'smith@college.edu';
 
 // POST /api/auth/signup (Student Registration)
 router.post('/signup/student', async (req, res) => {
+    return res.status(403).json({ error: 'Access Denied: Registration is currently disabled. Only pre-authorized accounts can access the portal.' });
+    /* Existing logic below (commented out)
     try {
         const { name, email, enrollment_no, department, semester, password } = req.body;
 
@@ -41,10 +42,13 @@ router.post('/signup/student', async (req, res) => {
         console.error('Student signup error:', err);
         res.status(500).json({ error: 'Server error' });
     }
+    */
 });
 
 // POST /api/auth/signup/faculty
 router.post('/signup/faculty', async (req, res) => {
+    return res.status(403).json({ error: 'Access Denied: Registration is currently disabled. Only pre-authorized accounts can access the portal.' });
+    /* Existing logic below (commented out)
     try {
         const { name, email, designation, password } = req.body;
 
@@ -73,6 +77,7 @@ router.post('/signup/faculty', async (req, res) => {
         console.error('Faculty signup error:', err);
         res.status(500).json({ error: 'Server error' });
     }
+    */
 });
 
 // GET /api/auth/profile/:email
@@ -137,6 +142,14 @@ router.post('/login', async (req, res) => {
 
         if (!email || !password || !role) {
             return res.status(400).json({ error: 'Email, password, and role are required' });
+        }
+
+        // Apply single-user restriction
+        if (role === 'student' && email.toLowerCase() !== AUTHORIZED_STUDENT.toLowerCase()) {
+            return res.status(403).json({ error: 'Access Denied: Student portal is restricted to a single user.' });
+        }
+        if (role === 'faculty' && email.toLowerCase() !== AUTHORIZED_FACULTY.toLowerCase()) {
+            return res.status(403).json({ error: 'Access Denied: Faculty portal is restricted to a single user.' });
         }
 
         const table = role === 'faculty' ? 'faculty' : 'students';
