@@ -117,8 +117,29 @@ export default function Dashboard() {
                 datasets: [{
                     label: 'Avg Score %',
                     data: subjectData.length ? subjectData : [0],
-                    backgroundColor: ['rgba(0, 122, 255, 0.8)', 'rgba(88, 86, 214, 0.8)', 'rgba(52, 199, 89, 0.8)', 'rgba(255, 149, 0, 0.8)', 'rgba(90, 200, 250, 0.8)'],
-                    borderRadius: 8,
+                    backgroundColor: [
+                        'rgba(139, 92, 246, 0.85)',
+                        'rgba(59, 130, 246, 0.85)',
+                        'rgba(6, 182, 212, 0.85)',
+                        'rgba(16, 185, 129, 0.85)',
+                        'rgba(245, 158, 11, 0.85)',
+                        'rgba(239, 68, 68, 0.85)',
+                        'rgba(236, 72, 153, 0.85)',
+                    ],
+                    hoverBackgroundColor: [
+                        'rgba(139, 92, 246, 1)',
+                        'rgba(59, 130, 246, 1)',
+                        'rgba(6, 182, 212, 1)',
+                        'rgba(16, 185, 129, 1)',
+                        'rgba(245, 158, 11, 1)',
+                        'rgba(239, 68, 68, 1)',
+                        'rgba(236, 72, 153, 1)',
+                    ],
+                    borderRadius: 12,
+                    borderSkipped: false,
+                    barThickness: 40,
+                    hoverBorderColor: 'rgba(255,255,255,0.8)',
+                    hoverBorderWidth: 2,
                 }]
             },
             trend: {
@@ -126,13 +147,27 @@ export default function Dashboard() {
                 datasets: [{
                     label: 'Retention Velocity',
                     data: trendData,
-                    borderColor: '#007AFF',
-                    backgroundColor: 'rgba(0, 122, 255, 0.05)',
+                    borderColor: 'rgba(99, 102, 241, 1)',
+                    backgroundColor: (context) => {
+                        const ctx = context.chart.ctx;
+                        const gradient = ctx.createLinearGradient(0, 0, 0, context.chart.height);
+                        gradient.addColorStop(0, 'rgba(99, 102, 241, 0.35)');
+                        gradient.addColorStop(0.4, 'rgba(139, 92, 246, 0.15)');
+                        gradient.addColorStop(0.7, 'rgba(6, 182, 212, 0.05)');
+                        gradient.addColorStop(1, 'rgba(6, 182, 212, 0)');
+                        return gradient;
+                    },
                     fill: true,
-                    tension: 0.4,
+                    tension: 0.45,
                     borderWidth: 3,
                     pointBackgroundColor: '#fff',
-                    pointBorderColor: '#007AFF',
+                    pointBorderColor: 'rgba(99, 102, 241, 1)',
+                    pointBorderWidth: 3,
+                    pointRadius: 5,
+                    pointHoverRadius: 9,
+                    pointHoverBackgroundColor: 'rgba(99, 102, 241, 1)',
+                    pointHoverBorderColor: '#fff',
+                    pointHoverBorderWidth: 3,
                 }]
             }
         };
@@ -143,30 +178,55 @@ export default function Dashboard() {
     const chartOptions = {
         responsive: true,
         maintainAspectRatio: false,
+        interaction: {
+            mode: 'nearest',
+            intersect: false,
+        },
         plugins: {
             legend: { display: false },
             tooltip: {
-                backgroundColor: '#fff',
-                titleColor: '#1a1a1a',
-                bodyColor: '#666',
-                borderColor: '#f0f0f0',
+                backgroundColor: 'rgba(15, 23, 42, 0.95)',
+                titleColor: '#f8fafc',
+                bodyColor: '#cbd5e1',
+                borderColor: 'rgba(139, 92, 246, 0.4)',
                 borderWidth: 1,
-                padding: 12,
-                boxPadding: 4,
+                padding: 16,
+                boxPadding: 8,
                 usePointStyle: true,
-                cornerRadius: 12,
+                cornerRadius: 14,
+                titleFont: { weight: '700', size: 14, family: 'Inter, system-ui, sans-serif' },
+                bodyFont: { size: 13, family: 'Inter, system-ui, sans-serif' },
+                displayColors: true,
+                caretSize: 8,
+                caretPadding: 8,
+                callbacks: {
+                    labelColor: function(context) {
+                        const colors = [
+                            'rgba(139, 92, 246, 1)',
+                            'rgba(59, 130, 246, 1)',
+                            'rgba(6, 182, 212, 1)',
+                            'rgba(16, 185, 129, 1)',
+                            'rgba(245, 158, 11, 1)',
+                        ];
+                        return {
+                            borderColor: colors[context.dataIndex % colors.length] || 'rgba(99, 102, 241, 1)',
+                            backgroundColor: colors[context.dataIndex % colors.length] || 'rgba(99, 102, 241, 0.8)',
+                            borderRadius: 4,
+                        };
+                    }
+                }
             }
         },
         scales: {
             y: {
                 border: { display: false },
-                grid: { color: '#f8f8f8', drawTicks: false },
-                ticks: { color: '#aaa', font: { size: 10, weight: '600' } }
+                grid: { color: 'rgba(148, 163, 184, 0.08)', drawTicks: false },
+                ticks: { color: '#94a3b8', font: { size: 11, weight: '600' }, padding: 8 }
             },
             x: {
                 border: { display: false },
                 grid: { display: false },
-                ticks: { color: '#aaa', font: { size: 10, weight: '600' } }
+                ticks: { color: '#64748b', font: { size: 11, weight: '600' }, padding: 8 }
             }
         },
     };
@@ -181,11 +241,11 @@ export default function Dashboard() {
             <div className="pb-12">
                 <div className="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-4">
                     <div>
-                        <h1 className="text-5xl font-bold tracking-tight text-gray-900 mb-2">Academic Overview</h1>
-                        <p className="text-lg text-gray-500 font-medium">Monitoring concept retention across all departments</p>
+                        <h1 className="text-5xl font-extrabold tracking-tight text-text-primary mb-2">Academic Overview</h1>
+                        <p className="text-lg text-text-secondary font-medium">Monitoring concept retention across all departments</p>
                     </div>
                     <div className="flex gap-3">
-                        <button className="apple-btn apple-btn-secondary !py-2 !px-4 text-sm font-bold">Download Report</button>
+                        <button className="apple-btn apple-btn-secondary !py-2 !px-4 text-sm font-bold bg-surface/50 border border-border/10 text-text-primary">Download Report</button>
                     </div>
                 </div>
 
@@ -197,12 +257,12 @@ export default function Dashboard() {
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-10">
-                    <div className="lg:col-span-2 premium-card p-8 bg-white h-[450px] flex flex-col">
+                    <div className="lg:col-span-2 premium-card p-8 h-[450px] flex flex-col">
                         <div className="flex justify-between items-center mb-8">
-                            <h3 className="font-bold text-lg text-gray-800 tracking-tight">Retention Velocity</h3>
-                            <div className="flex gap-2">
-                                <span className="w-3 h-3 rounded-full bg-blue-500"></span>
-                                <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">Aggregate %</span>
+                            <h3 className="font-bold text-lg text-text-primary tracking-tight">Retention Velocity</h3>
+                            <div className="flex gap-2 items-center">
+                                <span className="w-3 h-3 rounded-full bg-accent"></span>
+                                <span className="text-[10px] font-black text-text-tertiary uppercase tracking-widest">Aggregate %</span>
                             </div>
                         </div>
                         <div className="flex-1">
@@ -210,9 +270,9 @@ export default function Dashboard() {
                         </div>
                     </div>
 
-                    <div className="premium-card p-8 bg-white h-[450px] flex flex-col">
+                    <div className="premium-card p-8 h-[450px] flex flex-col">
                         <div className="flex justify-between items-center mb-8">
-                            <h3 className="font-bold text-lg text-gray-800 tracking-tight">Unit Performance</h3>
+                            <h3 className="font-bold text-lg text-text-primary tracking-tight">Unit Performance</h3>
                         </div>
                         <div className="flex-1">
                             <Bar data={barChartData} options={chartOptions} />
@@ -221,13 +281,13 @@ export default function Dashboard() {
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                    <div className="premium-card p-8 bg-white h-[600px] overflow-y-auto">
-                        <div className="flex justify-between items-center mb-8 sticky top-0 bg-white z-10 py-2 border-b border-gray-50">
-                            <h3 className="font-bold text-lg text-gray-800 tracking-tight flex items-center gap-2">
-                                <HiOutlineExclamationCircle className="w-5 h-5 text-[var(--color-accent)]" />
+                    <div className="premium-card p-8 h-[600px] overflow-y-auto">
+                        <div className="flex justify-between items-center mb-8 sticky top-0 bg-surface z-10 py-2 border-b border-border/5">
+                            <h3 className="font-bold text-lg text-text-primary tracking-tight flex items-center gap-2">
+                                <HiOutlineExclamationCircle className="w-5 h-5 text-accent" />
                                 Student Results & Analysis
                             </h3>
-                            <button className="text-xs font-bold text-[var(--color-accent)] hover:underline tracking-widest uppercase">Analyze All</button>
+                            <button className="text-[10px] font-black text-accent hover:opacity-80 tracking-widest uppercase">Analyze All</button>
                         </div>
                         <div className="space-y-6">
                             {results.length === 0 ? (
@@ -241,22 +301,22 @@ export default function Dashboard() {
                                 })).filter(r => r.fault);
 
                                 return (
-                                <div key={result.id} className="p-5 bg-gray-50/50 rounded-2xl border border-gray-100 hover:shadow-xl transition-all">
+                                <div key={result.id} className="p-5 bg-surface-secondary/50 rounded-2xl border border-border/5 hover:shadow-xl hover:bg-surface transition-all">
                                     <div className="flex justify-between items-center mb-4">
                                         <div className="flex items-center gap-4">
-                                            <div className="w-10 h-10 rounded-full bg-blue-100/50 flex items-center justify-center text-xl border border-blue-50">
+                                            <div className="w-10 h-10 rounded-full bg-accent/10 flex items-center justify-center text-xl border border-accent/20">
                                                 👨‍🎓
                                             </div>
                                             <div>
-                                                <p className="font-bold text-sm text-gray-800">{result.studentName}</p>
-                                                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{result.testName} • {new Date(result.timestamp).toLocaleDateString()}</p>
+                                                <p className="font-bold text-sm text-text-primary">{result.studentName}</p>
+                                                <p className="text-[10px] font-bold text-text-tertiary uppercase tracking-widest">{result.testName} • {new Date(result.timestamp).toLocaleDateString()}</p>
                                             </div>
                                         </div>
                                         <div className="text-right flex items-center justify-end gap-3">
                                             {result.isMissed ? (
                                                 <div className="flex items-center gap-1">
-                                                    <p className="font-black text-xl text-rose-500 uppercase tracking-widest">Missed</p>
-                                                    <button onClick={() => handleDeleteResult(result.id)} className="p-1.5 text-gray-400 hover:text-rose-600 hover:bg-rose-50 rounded bg-transparent transition-all" title="Delete Record">
+                                                    <p className="font-black text-xl text-text-tertiary uppercase tracking-widest">Missed</p>
+                                                    <button onClick={() => handleDeleteResult(result.id)} className="p-1.5 text-text-tertiary hover:text-text-primary hover:bg-surface-secondary rounded bg-transparent transition-all" title="Delete Record">
                                                         <HiOutlineTrash className="w-4 h-4" />
                                                     </button>
                                                 </div>
@@ -269,17 +329,17 @@ export default function Dashboard() {
                                                         value={editingScoreValue}
                                                         onChange={(e) => setEditingScoreValue(e.target.value)}
                                                     />
-                                                    <button onClick={() => handleUpdateScore(result.id, editingScoreValue)} className="text-[10px] font-black uppercase tracking-widest text-emerald-600 hover:text-emerald-700">Save</button>
-                                                    <button onClick={() => setEditingScoreId(null)} className="text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-gray-600">Cancel</button>
+                                                    <button onClick={() => handleUpdateScore(result.id, editingScoreValue)} className="text-[10px] font-black uppercase tracking-widest text-text-primary">Save</button>
+                                                    <button onClick={() => setEditingScoreId(null)} className="text-[10px] font-black uppercase tracking-widest text-text-tertiary hover:text-text-primary">Cancel</button>
                                                 </div>
                                             ) : (
                                                 <>
-                                                    <p className={`font-black text-xl ${result.score >= 70 ? 'text-emerald-500' : 'text-rose-500'}`}>{result.score}%</p>
+                                                    <p className="font-black text-xl text-text-primary">{result.score}%</p>
                                                     <div className="flex items-center gap-1">
-                                                        <button onClick={() => { setEditingScoreId(result.id); setEditingScoreValue(result.score); }} className="p-1.5 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded bg-transparent transition-all" title="Edit Score">
+                                                        <button onClick={() => { setEditingScoreId(result.id); setEditingScoreValue(result.score); }} className="p-1.5 text-text-tertiary hover:text-text-primary hover:bg-surface-secondary rounded bg-transparent transition-all" title="Edit Score">
                                                             <HiOutlinePencil className="w-4 h-4" />
                                                         </button>
-                                                        <button onClick={() => handleDeleteResult(result.id)} className="p-1.5 text-gray-400 hover:text-rose-600 hover:bg-rose-50 rounded bg-transparent transition-all" title="Delete Record">
+                                                        <button onClick={() => handleDeleteResult(result.id)} className="p-1.5 text-text-tertiary hover:text-text-primary hover:bg-surface-secondary rounded bg-transparent transition-all" title="Delete Record">
                                                             <HiOutlineTrash className="w-4 h-4" />
                                                         </button>
                                                     </div>
@@ -289,49 +349,49 @@ export default function Dashboard() {
                                     </div>
 
                                     {result.isMissed ? (
-                                        <div className="bg-rose-50 rounded-xl p-4 border border-rose-100 shadow-sm mb-4">
-                                            <p className="text-[10px] font-bold text-rose-500 uppercase tracking-widest mb-1">Student Reason for Absence</p>
-                                            <p className="text-xs font-medium text-rose-800 leading-relaxed mb-3">{result.missedReason}</p>
+                                        <div className="bg-surface-secondary rounded-xl p-4 border border-border/10 shadow-sm mb-4">
+                                            <p className="text-[10px] font-black text-text-tertiary uppercase tracking-widest mb-1">Student Reason for Absence</p>
+                                            <p className="text-xs font-medium text-text-secondary leading-relaxed mb-3">{result.missedReason}</p>
                                         </div>
                                     ) : (
-                                        <div className="bg-white rounded-xl p-4 border border-indigo-50 shadow-sm mb-4">
+                                        <div className="bg-surface rounded-xl p-4 border border-border/10 shadow-sm mb-4">
                                             {result.lateReason && (
-                                                <div className="mb-4 p-3 bg-amber-50 rounded-xl border border-amber-100">
-                                                    <p className="text-[10px] font-bold text-amber-600 uppercase tracking-widest mb-1">Reason for Late/Untimed Access</p>
-                                                    <p className="text-xs font-medium text-amber-800 leading-relaxed">{result.lateReason}</p>
+                                                <div className="mb-4 p-3 bg-surface-secondary rounded-xl border border-border/10">
+                                                    <p className="text-[10px] font-black text-text-tertiary uppercase tracking-widest mb-1">Reason for Late/Untimed Access</p>
+                                                    <p className="text-xs font-medium text-text-secondary leading-relaxed">{result.lateReason}</p>
                                                 </div>
                                             )}
-                                            <p className="text-[10px] font-bold text-indigo-500 uppercase tracking-widest mb-1">AI Identified Drawbacks</p>
-                                            <p className="text-xs font-medium text-gray-600 leading-relaxed mb-3">{result.aiDrawbacks}</p>
-                                            <div className="h-px bg-gray-50 mb-3"></div>
-                                            <p className="text-[10px] font-bold text-emerald-500 uppercase tracking-widest mb-1">AI Solution Route & Improvements</p>
-                                            <p className="text-xs font-medium text-gray-600 leading-relaxed mb-4">{result.aiSolutions}</p>
+                                            <p className="text-[10px] font-black text-text-tertiary uppercase tracking-widest mb-1">AI Identified Drawbacks</p>
+                                            <p className="text-xs font-medium text-text-secondary leading-relaxed mb-3">{result.aiDrawbacks}</p>
+                                            <div className="h-px bg-border/5 mb-3"></div>
+                                            <p className="text-[10px] font-black text-text-primary uppercase tracking-widest mb-1">AI Solution Route & Improvements</p>
+                                            <p className="text-xs font-medium text-text-secondary leading-relaxed mb-4">{result.aiSolutions}</p>
 
                                             {recommendations.length > 0 && (
-                                                <div className="mt-6 p-5 bg-gradient-to-br from-blue-50/80 to-indigo-50/80 rounded-2xl border border-blue-100 shadow-inner">
+                                                <div className="mt-6 p-5 bg-surface-tertiary rounded-2xl border border-border/10">
                                                     <div className="flex items-center gap-2 mb-4">
-                                                        <div className="w-8 h-8 rounded-xl bg-blue-500 flex items-center justify-center text-white shadow-lg shadow-blue-500/20">
+                                                        <div className="w-8 h-8 rounded-xl bg-text-primary flex items-center justify-center text-surface shadow-lg">
                                                             <HiOutlineLightBulb className="w-5 h-5" />
                                                         </div>
                                                         <div>
-                                                            <p className="text-[10px] font-black text-blue-600 uppercase tracking-[0.2em] leading-none mb-1">Faculty Suggestion Engine</p>
-                                                            <p className="text-[9px] font-bold text-blue-400 uppercase tracking-wider leading-none">AI-Assisted Intervention Strategy</p>
+                                                            <p className="text-[10px] font-black text-text-primary uppercase tracking-[0.2em] leading-none mb-1">Faculty Suggestion Engine</p>
+                                                            <p className="text-[9px] font-bold text-text-tertiary uppercase tracking-wider leading-none">AI-Assisted Intervention Strategy</p>
                                                         </div>
                                                     </div>
                                                     <div className="space-y-4">
                                                         {recommendations.map((rec, idx) => (
-                                                            <div key={idx} className="bg-white/80 backdrop-blur-sm p-4 rounded-xl border border-white shadow-sm hover:shadow-md transition-shadow">
+                                                            <div key={idx} className="bg-surface p-4 rounded-xl border border-border/10 shadow-sm">
                                                                 <div className="flex items-center justify-between mb-2">
-                                                                    <p className="text-[9px] font-black text-indigo-400 uppercase tracking-[0.1em]">Domain: {rec.name}</p>
-                                                                    <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+                                                                    <p className="text-[9px] font-black text-text-tertiary uppercase tracking-[0.1em]">Domain: {rec.name}</p>
+                                                                    <span className="w-2 h-2 rounded-full bg-text-primary animate-pulse"></span>
                                                                 </div>
                                                                 <div className="mb-3">
-                                                                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Core Deficiency</p>
-                                                                    <p className="text-xs font-medium text-gray-700 leading-relaxed italic border-l-2 border-amber-200 pl-3">{rec.fault}</p>
+                                                                    <p className="text-[10px] font-black text-text-tertiary uppercase tracking-widest mb-1">Core Deficiency</p>
+                                                                    <p className="text-xs font-medium text-text-secondary leading-relaxed italic border-l-2 border-border/20 pl-3">{rec.fault}</p>
                                                                 </div>
                                                                 <div>
-                                                                    <p className="text-[10px] font-black text-emerald-500 uppercase tracking-widest mb-1">Intervention Strategy</p>
-                                                                    <p className="text-xs font-bold text-emerald-800 leading-relaxed bg-emerald-50/50 p-2 rounded-lg border border-emerald-100/50">{rec.solution}</p>
+                                                                    <p className="text-[10px] font-black text-text-primary uppercase tracking-widest mb-1">Intervention Strategy</p>
+                                                                    <p className="text-xs font-bold text-text-primary leading-relaxed bg-surface-secondary p-2 rounded-lg border border-border/10">{rec.solution}</p>
                                                                 </div>
                                                             </div>
                                                         ))}
@@ -343,8 +403,8 @@ export default function Dashboard() {
 
 
                                     {result.teacherFeedback ? (
-                                        <div className="bg-indigo-600 text-white rounded-xl p-4 shadow-inner shadow-black/10">
-                                            <p className="text-[10px] font-black text-indigo-200 uppercase tracking-[0.2em] mb-1">Your Feedback</p>
+                                        <div className="bg-text-primary text-surface rounded-xl p-4 shadow-inner shadow-black/10">
+                                            <p className="text-[10px] font-black text-surface/60 uppercase tracking-[0.2em] mb-1">Your Feedback</p>
                                             <p className="text-xs font-medium leading-relaxed">{result.teacherFeedback}</p>
                                         </div>
                                     ) : (
@@ -370,27 +430,27 @@ export default function Dashboard() {
                         </div>
                     </div>
 
-                    <div className="premium-card p-8 bg-white">
+                    <div className="premium-card p-8">
                         <div className="flex justify-between items-center mb-8">
-                            <h3 className="font-bold text-lg text-gray-800 tracking-tight">Top Merit List</h3>
-                            <button className="text-xs font-bold text-[var(--color-accent)] hover:underline tracking-widest uppercase">Leaderboard</button>
+                            <h3 className="font-bold text-lg text-text-primary tracking-tight">Top Merit List</h3>
+                            <button className="text-[10px] font-black text-accent hover:opacity-80 tracking-widest uppercase">Leaderboard</button>
                         </div>
                         <div className="space-y-6">
                             {topStudents.map((student) => (
                                 <div key={student.id} className="flex items-center justify-between p-2">
                                     <div className="flex items-center gap-4">
-                                        <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-xl border border-blue-100">
+                                        <div className="w-10 h-10 rounded-full bg-surface-secondary flex items-center justify-center text-xl border border-border/10">
                                             {student.avatar}
                                         </div>
                                         <div>
-                                            <p className="font-bold text-sm text-gray-800">{student.name}</p>
-                                            <p className="text-xs text-gray-400 font-semibold">{student.enrollment}</p>
+                                            <p className="font-bold text-sm text-text-primary">{student.name}</p>
+                                            <p className="text-[10px] font-bold text-text-tertiary uppercase tracking-widest">{student.enrollment}</p>
                                         </div>
                                     </div>
                                     <div className="text-right">
-                                        <p className="font-black text-gray-900">{student.retentionScore}%</p>
-                                        <div className="w-16 h-1 bg-gray-100 rounded-full mt-1 overflow-hidden">
-                                            <div className="h-full bg-emerald-400 rounded-full" style={{ width: `${student.retentionScore}%` }}></div>
+                                        <p className="font-black text-text-primary">{student.retentionScore}%</p>
+                                        <div className="w-16 h-1 bg-surface-secondary rounded-full mt-1 overflow-hidden">
+                                            <div className="h-full bg-text-primary rounded-full" style={{ width: `${student.retentionScore}%` }}></div>
                                         </div>
                                     </div>
                                 </div>

@@ -129,7 +129,7 @@ export default function Signup() {
                     className="w-full max-w-[500px]"
                 >
                     <div className="text-center mb-10">
-                        <div className="w-16 h-16 rounded-2xl bg-white shadow-sm flex items-center justify-center mx-auto mb-6 border border-[var(--color-border)]/30">
+                        <div className="w-16 h-16 rounded-2xl bg-surface shadow-sm flex items-center justify-center mx-auto mb-6 border border-[var(--color-border)]/30">
                             <HiOutlineAcademicCap className="w-8 h-8 text-[var(--color-accent)]" />
                         </div>
                         <h1 className="text-3xl font-bold tracking-tight mb-2">
@@ -138,11 +138,11 @@ export default function Signup() {
                         <p className="text-[var(--color-text-secondary)]">Create your academic profile to get started</p>
                     </div>
 
-                    <div className="premium-card p-8 bg-white">
+                    <div className="premium-card p-8">
                         <form onSubmit={handleSubmit} className="space-y-5">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                                 <div className="space-y-2">
-                                    <label className="text-sm font-medium ml-1">Full Name</label>
+                                    <label className="text-sm font-medium ml-1 text-[var(--color-text-primary)]">Full Name</label>
                                     <div className="relative">
                                         <HiOutlineUser className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--color-text-tertiary)] w-5 h-5" />
                                         <input
@@ -156,7 +156,7 @@ export default function Signup() {
                                     </div>
                                 </div>
                                 <div className="space-y-2">
-                                    <label className="text-sm font-medium ml-1">
+                                    <label className="text-sm font-medium ml-1 text-[var(--color-text-primary)]">
                                         {roleParam === 'faculty' ? 'Designation' : 'Enrollment No'}
                                     </label>
                                     <div className="relative">
@@ -178,7 +178,7 @@ export default function Signup() {
                             </div>
 
                             <div className="space-y-2">
-                                <label className="text-sm font-medium ml-1">Email Address</label>
+                                <label className="text-sm font-medium ml-1 text-[var(--color-text-primary)]">Email Address</label>
                                 <div className="relative">
                                     <HiOutlineMail className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--color-text-tertiary)] w-5 h-5" />
                                     <input
@@ -194,7 +194,7 @@ export default function Signup() {
 
                             <div className={`grid grid-cols-1 ${roleParam === 'student' ? 'md:grid-cols-2' : ''} gap-5`}>
                                 <div className="space-y-2">
-                                    <label className="text-sm font-medium ml-1">Department</label>
+                                    <label className="text-sm font-medium ml-1 text-[var(--color-text-primary)]">Department</label>
                                     <div className="relative">
                                         <HiOutlineLibrary className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--color-text-tertiary)] w-5 h-5" />
                                         <select
@@ -211,7 +211,7 @@ export default function Signup() {
                                 </div>
                                 {roleParam === 'student' && (
                                     <div className="space-y-2">
-                                        <label className="text-sm font-medium ml-1">Semester</label>
+                                        <label className="text-sm font-medium ml-1 text-[var(--color-text-primary)]">Semester</label>
                                         <div className="relative">
                                             <HiOutlineAcademicCap className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--color-text-tertiary)] w-5 h-5" />
                                             <select
@@ -229,7 +229,7 @@ export default function Signup() {
                             </div>
 
                             <div className="space-y-2">
-                                <label className="text-sm font-medium ml-1">Password</label>
+                                <label className="text-sm font-medium ml-1 text-[var(--color-text-primary)]">Password</label>
                                 <div className="relative">
                                     <HiOutlineLockClosed className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--color-text-tertiary)] w-5 h-5" />
                                     <input
@@ -257,7 +257,7 @@ export default function Signup() {
                                     <div className="w-full border-t border-[var(--color-border)]/50"></div>
                                 </div>
                                 <div className="relative flex justify-center text-sm">
-                                    <span className="px-2 bg-white text-[var(--color-text-tertiary)]">Or continue with</span>
+                                    <span className="px-2 bg-surface text-[var(--color-text-tertiary)]">Or continue with</span>
                                 </div>
                             </div>
 
@@ -265,7 +265,7 @@ export default function Signup() {
                                 type="button"
                                 onClick={handleGoogleSignUp}
                                 disabled={loading}
-                                className="apple-btn w-full py-3.5 gap-2 border border-[var(--color-border)] bg-gray-50/50 hover:bg-gray-100/50 text-gray-700 font-medium transition-colors"
+                                className="apple-btn w-full py-3.5 gap-2 border border-[var(--color-border)] bg-surface-secondary/50 hover:bg-surface-tertiary/50 text-[var(--color-text-secondary)] font-medium transition-colors"
                             >
                                 <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" className="w-5 h-5" />
                                 Sign up with Google
