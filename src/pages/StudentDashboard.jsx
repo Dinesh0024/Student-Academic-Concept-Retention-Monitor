@@ -26,7 +26,14 @@ export default function StudentDashboard() {
     }, [user]);
 
     const upcomingTests = allTests.filter(t => !t.isLive);
-    const aiLiveAssessments = allTests.filter(t => t.isLive);
+    const aiLiveAssessments = allTests.filter(t => {
+        if (!t.isLive) return false;
+        if (t.date && t.endTime) {
+            const expiry = new Date(`${t.date} ${t.endTime}`);
+            return expiry > new Date();
+        }
+        return true;
+    });
 
     // Calculate Overall Mastery
     const overallMastery = pastResults.length > 0
@@ -104,7 +111,6 @@ export default function StudentDashboard() {
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-14">
                     {[
                         { to: "/student/concepts", icon: HiOutlineLightBulb, label: "Knowledge Map", sub: "Deep Insights" },
-                        { to: "/student/reports", icon: HiOutlineDocumentReport, label: "Academic Audit", sub: "Performance" },
                         { to: "/student/assessments", icon: HiOutlineCheckCircle, label: "Live Testing", sub: "Assessments" },
                         { to: "/student/settings", icon: HiOutlineCog, label: "Portal Hub", sub: "Preferences" }
                     ].map((item, i) => (
@@ -119,6 +125,91 @@ export default function StudentDashboard() {
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     <div className="lg:col-span-2 space-y-8">
+                        {/* Live AI Challenges (Active Deployments) */}
+                        {aiLiveAssessments.length > 0 && (
+                            <div className="premium-card p-8 border-l-4 border-l-indigo-500 bg-indigo-50/20">
+                                <h3 className="text-lg font-bold text-text-primary mb-6 flex items-center gap-2">
+                                    <span className="w-2.5 h-2.5 rounded-full bg-indigo-500 animate-pulse"></span>
+                                    Live AI Challenges
+                                </h3>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    {aiLiveAssessments.map((t) => (
+                                        <div key={t.id} className="p-5 rounded-2xl bg-white border border-indigo-100 flex flex-col group hover:shadow-lg hover:border-indigo-300 transition-all">
+                                            <div className="mb-4">
+                                                <h4 className="font-bold text-text-primary">{t.subject}</h4>
+                                                <p className="text-[10px] font-black text-text-tertiary uppercase tracking-widest mt-1">AI Generated • {t.duration} Min • {t.numQuestions} Qs</p>
+                                            </div>
+                                            <Link to="/student/test" state={{ testConfig: t }} className="apple-btn apple-btn-primary !py-2 !px-4 !text-[9px] !font-black !uppercase !tracking-[0.15em] bg-indigo-600 shadow-indigo-600/20">Launch AI Challenge</Link>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Faculty Insights - High Priority Feedback */}
+                        {pastResults.some(r => r.teacherFeedback) && (
+                            <div className="premium-card p-8 border-l-4 border-l-accent shadow-xl shadow-accent/5">
+                                <div className="flex items-center gap-3 mb-8">
+                                    <div className="w-10 h-10 rounded-2xl bg-accent/10 flex items-center justify-center text-accent">
+                                        <HiOutlineDocumentReport className="w-6 h-6" />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-xl font-black text-text-primary tracking-tight">Faculty Insights</h3>
+                                        <p className="text-xs font-bold text-text-tertiary uppercase tracking-widest">Personalized Teacher Assessments</p>
+                                    </div>
+                                </div>
+                                <div className="space-y-6">
+                                    {pastResults.filter(r => r.teacherFeedback).map((r, i) => (
+                                        <div key={i} className="p-6 rounded-3xl bg-surface-secondary/50 border border-border/5 group hover:bg-surface transition-all">
+                                            <div className="flex justify-between items-start mb-4">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-10 h-10 rounded-full bg-accent/20 flex items-center justify-center text-lg shadow-sm border border-accent/10">
+                                                        👨‍🏫
+                                                    </div>
+                                                    <div>
+                                                        <h4 className="font-bold text-text-primary text-sm tracking-tight">{r.facultyName || 'Faculty Member'}</h4>
+                                                        <p className="text-[10px] font-black text-text-tertiary uppercase tracking-widest">{r.testName}</p>
+                                                    </div>
+                                                </div>
+                                                <div className="text-right">
+                                                    <span className="text-lg font-black text-accent">{r.score}%</span>
+                                                    <p className="text-[8px] font-black text-text-tertiary uppercase tracking-widest leading-none">Score</p>
+                                                </div>
+                                            </div>
+                                            <div className="p-4 bg-accent/5 border border-accent/10 rounded-2xl italic text-sm font-medium text-text-primary leading-relaxed">
+                                                "{r.teacherFeedback}"
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Quick Practice Hub (Static Topics) */}
+                        <div className="premium-card p-8">
+                            <h3 className="text-lg font-bold text-text-primary mb-6 flex items-center gap-2">
+                                <HiOutlineStar className="w-5 h-5 text-accent" />
+                                Quick Practice Hub
+                            </h3>
+                            <div className="flex flex-wrap gap-3">
+                                {Object.keys(QUESTION_BANK).map((topic, i) => {
+                                    const liveConfig = {
+                                        id: `live-${topic.toLowerCase().replace(' ', '-')}`,
+                                        name: `Live Challenge: ${topic}`,
+                                        subject: topic,
+                                        duration: 15,
+                                        isLive: true,
+                                        numQuestions: 10
+                                    }
+                                    return (
+                                        <Link key={i} to="/student/test" state={{ testConfig: liveConfig }} className="px-5 py-3 rounded-2xl bg-surface-secondary/50 border border-border/5 hover:bg-surface hover:border-accent hover:shadow-lg transition-all text-sm font-bold text-text-primary">
+                                            {topic}
+                                        </Link>
+                                    );
+                                })}
+                            </div>
+                        </div>
+
                         {/* Upcoming Assessments */}
                         <div className="premium-card p-8">
                             <h3 className="text-lg font-bold text-text-primary mb-6 flex items-center gap-2">

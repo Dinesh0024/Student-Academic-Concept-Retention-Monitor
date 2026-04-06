@@ -4,7 +4,7 @@ import { HiOutlineDownload, HiOutlineDocumentReport, HiOutlineUserGroup, HiOutli
 import PageTransition from '../components/PageTransition';
 import { getRetentionLevel } from '../utils/analytics';
 import jsPDF from 'jspdf';
-import 'jspdf-autotable';
+import autoTable from 'jspdf-autotable';
 import mockDb from '../utils/mockDb';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
@@ -65,7 +65,7 @@ export default function Reports() {
                 ? students.filter(s => s.email === user?.email || s.name?.toLowerCase() === user?.name?.toLowerCase())
                 : students;
 
-            doc.autoTable({
+            autoTable(doc, {
                 startY: isStudent ? 42 : 40,
                 head: [['Candidate', 'Access Code', 'Discipline', 'Sem', 'Retention', 'Verdict']],
                 body: tableData.map(s => [
@@ -89,7 +89,7 @@ export default function Reports() {
                 doc.setTextColor(30, 30, 30);
                 doc.text('Assessment Results', 14, finalY);
 
-                doc.autoTable({
+                autoTable(doc, {
                     startY: finalY + 6,
                     head: [['Candidate', 'Assessment', 'Score', 'Status']],
                     body: displayResults.map(r => [
@@ -128,7 +128,7 @@ export default function Reports() {
             doc.setTextColor(110);
             doc.text(`System Generated Analytics — ${new Date().toLocaleDateString()}`, 14, 30);
 
-            doc.autoTable({
+            autoTable(doc, {
                 startY: 40,
                 head: [['Discipline', 'Code', 'Department', 'Semester', 'Concepts']],
                 body: subjects.map(s => [
@@ -150,7 +150,7 @@ export default function Reports() {
             doc.setTextColor(30, 30, 30);
             doc.text('Concept Mastery Breakdown', 14, finalY);
 
-            doc.autoTable({
+            autoTable(doc, {
                 startY: finalY + 6,
                 head: [['Concept', 'Subject', 'Mastery', 'Status']],
                 body: concepts.map(c => {
@@ -215,7 +215,7 @@ export default function Reports() {
                 ];
             });
 
-            doc.autoTable({
+            autoTable(doc, {
                 startY: 40,
                 head: [['Department', 'Students', 'Avg Retention', 'Highest', 'Lowest', 'Verdict']],
                 body: deptData,
@@ -237,7 +237,7 @@ export default function Reports() {
                 subjByDept[s.department].push(s);
             });
 
-            doc.autoTable({
+            autoTable(doc, {
                 startY: finalY + 6,
                 head: [['Department', 'Subjects', 'Subject List']],
                 body: Object.entries(subjByDept).map(([dept, subs]) => [

@@ -156,11 +156,39 @@ export const mockDb = {
     },
 
     getResultsByStudent: async (studentEmail) => {
-        const results = staticResults.filter(r => r.studentEmail === studentEmail);
-        return Promise.resolve(results);
+        const stored = localStorage.getItem('stored_results');
+        const dynamicResults = stored ? JSON.parse(stored) : [];
+        const combined = [...staticResults, ...dynamicResults];
+        
+        // Use a map to handle overrides (if a static result was updated in storage)
+        const resultMap = {};
+        combined.forEach(r => {
+            if (r.studentEmail === studentEmail) {
+                resultMap[r.id] = r;
+            }
+        });
+        
+        return Promise.resolve(Object.values(resultMap).sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)));
     },
 
-    updateResultFeedback: async (resultId, feedback) => {
+    updateResultFeedback: async (resultId, feedback, facultyName) => {
+        const stored = localStorage.getItem('stored_results');
+        const results = stored ? JSON.parse(stored) : [];
+        const index = results.findIndex(r => r.id === resultId);
+        
+        if (index >= 0) {
+            results[index].teacherFeedback = feedback;
+            results[index].facultyName = facultyName;
+            localStorage.setItem('stored_results', JSON.stringify(results));
+        } else {
+            // Find in staticResults and create a new override in localStorage
+            const staticResult = staticResults.find(r => r.id === resultId);
+            if (staticResult) {
+                const newResult = { ...staticResult, teacherFeedback: feedback, facultyName: facultyName };
+                results.push(newResult);
+                localStorage.setItem('stored_results', JSON.stringify(results));
+            }
+        }
         return Promise.resolve();
     },
 
@@ -172,6 +200,23 @@ export const mockDb = {
         return Promise.resolve();
     },
 
+    markFeedbackAsRead: async (studentEmail) => {
+        const stored = localStorage.getItem('stored_results');
+        const results = stored ? JSON.parse(stored) : [];
+        let changed = false;
+        
+        results.forEach(r => {
+            if (r.studentEmail === studentEmail && r.teacherFeedback && !r.isFeedbackRead) {
+                r.isFeedbackRead = true;
+                changed = true;
+            }
+        });
+        
+        if (changed) {
+            localStorage.setItem('stored_results', JSON.stringify(results));
+        }
+        return Promise.resolve();
+    },
     // Seeding Utility (No-op in static mode)
     seedInitialData: async () => {
         console.log("Static mode: Skipping database seeding.");

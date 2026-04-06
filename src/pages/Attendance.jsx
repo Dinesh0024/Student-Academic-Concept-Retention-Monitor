@@ -12,6 +12,7 @@ export default function Attendance() {
     const [selectedTestId, setSelectedTestId] = useState('');
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
+    const [stats, setStats] = useState({ total: 0, attended: 0, missed: 0 });
 
     useEffect(() => {
         const fetchData = async () => {
@@ -51,8 +52,20 @@ export default function Attendance() {
         s.email.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
-    const attendedCount = attendanceData.filter(s => s.attended && !s.isMissed).length;
-    const missedCount = attendanceData.filter(s => !s.attended || s.isMissed).length;
+    useEffect(() => {
+        const attended = attendanceData.filter(s => s.attended && !s.isMissed).length;
+        const missed = attendanceData.filter(s => !s.attended || s.isMissed).length;
+        setStats({ total: attendanceData.length, attended, missed });
+    }, [searchTerm, selectedTestId, students, results]);
+
+    const handleExternalLink = (student) => {
+        import('react-hot-toast').then(({ toast }) => {
+            toast.success(`Retention insights: ${student.name} (${student.email}).`, {
+                icon: '📋',
+                duration: 4000
+            });
+        });
+    };
 
     if (loading) return <div className="p-8 text-center text-gray-400 font-bold uppercase tracking-widest text-xs">Loading Attendance Matrix...</div>;
 
@@ -70,7 +83,7 @@ export default function Attendance() {
                             <HiOutlineFilter className="w-4 h-4 text-gray-400 ml-4" />
                             <select 
                                 value={selectedTestId}
-                                onChange={(e) => setSelectedTestId(e.target.id || e.target.value)}
+                                onChange={(e) => setSelectedTestId(e.target.value)}
                                 className="bg-transparent border-none text-sm font-bold text-gray-700 px-4 py-3 focus:ring-0 min-w-[200px]"
                             >
                                 {tests.map(test => (
@@ -96,15 +109,15 @@ export default function Attendance() {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
                     <GlassCard className="p-8 border-l-4 border-l-indigo-500">
                         <p className="text-[10px] font-black text-indigo-500 uppercase tracking-widest mb-2">Total Candidates</p>
-                        <h3 className="text-4xl font-black text-gray-900">{attendanceData.length}</h3>
+                        <h3 className="text-4xl font-black text-gray-900">{stats.total}</h3>
                     </GlassCard>
                     <GlassCard className="p-8 border-l-4 border-l-emerald-500">
                         <p className="text-[10px] font-black text-emerald-500 uppercase tracking-widest mb-2">Attended</p>
-                        <h3 className="text-4xl font-black text-emerald-600">{attendedCount}</h3>
+                        <h3 className="text-4xl font-black text-emerald-600">{stats.attended}</h3>
                     </GlassCard>
                     <GlassCard className="p-8 border-l-4 border-l-rose-500">
                         <p className="text-[10px] font-black text-rose-500 uppercase tracking-widest mb-2">Not Attended / Missed</p>
-                        <h3 className="text-4xl font-black text-rose-600">{missedCount}</h3>
+                        <h3 className="text-4xl font-black text-rose-600">{stats.missed}</h3>
                     </GlassCard>
                 </div>
 
@@ -173,7 +186,10 @@ export default function Attendance() {
                                                 {student.timestamp ? new Date(student.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'N/A'}
                                             </td>
                                             <td className="px-8 py-6">
-                                                <button className="p-2 text-gray-400 hover:text-indigo-500 hover:bg-indigo-50 rounded-xl transition-all">
+                                                <button 
+                                                    onClick={() => handleExternalLink(student)}
+                                                    className="p-2 text-gray-400 hover:text-indigo-500 hover:bg-indigo-50 rounded-xl transition-all"
+                                                >
                                                     <HiOutlineExternalLink className="w-5 h-5" />
                                                 </button>
                                             </td>

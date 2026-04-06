@@ -24,7 +24,14 @@ export default function LiveAssessments() {
         return () => clearInterval(interval);
     }, []);
 
-    const aiLiveAssessments = allTests.filter(t => t.isLive);
+    const aiLiveAssessments = allTests.filter(t => {
+        if (!t.isLive) return false;
+        if (t.date && t.endTime) {
+            const expiry = new Date(`${t.date} ${t.endTime}`);
+            return expiry > new Date();
+        }
+        return true;
+    });
 
     return (
         <PageTransition>

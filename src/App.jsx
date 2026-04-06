@@ -19,6 +19,7 @@ import Settings from './pages/Settings';
 import Attendance from './pages/Attendance';
 
 import StudentDashboard from './pages/StudentDashboard';
+import StudentFeedback from './pages/StudentFeedback';
 import LiveAssessments from './pages/LiveAssessments';
 import TestInterface from './pages/TestInterface';
 import AdminDashboard from './pages/AdminDashboard';
@@ -61,12 +62,9 @@ function AppRoutes() {
       <DashboardLayout>
         <Routes>
           <Route index element={<Dashboard />} />
-          <Route path="students" element={<Students />} />
           <Route path="concepts" element={<ConceptTracker />} />
           <Route path="questions" element={<QuestionGenerator />} />
-          <Route path="tests" element={<TestScheduler />} />
           <Route path="attendance" element={<Attendance />} />
-          <Route path="reports" element={<Reports />} />
           <Route path="settings" element={<Settings />} />
           <Route path="*" element={<Navigate to="/faculty" replace />} />
         </Routes>
@@ -79,8 +77,8 @@ function AppRoutes() {
           <Route index element={<StudentDashboard />} />
           <Route path="assessments" element={<LiveAssessments />} />
           <Route path="concepts" element={<ConceptTracker />} />
+          <Route path="feedback" element={<StudentFeedback />} />
           <Route path="test" element={<TestInterface />} />
-          <Route path="reports" element={<Reports />} />
           <Route path="settings" element={<Settings />} />
           <Route path="*" element={<Navigate to="/student" replace />} />
         </Routes>
@@ -91,7 +89,6 @@ function AppRoutes() {
       <DashboardLayout>
         <Routes>
           <Route index element={<AdminDashboard />} />
-          <Route path="reports" element={<Reports />} />
           <Route path="settings" element={<Settings />} />
           <Route path="*" element={<Navigate to="/admin" replace />} />
         </Routes>

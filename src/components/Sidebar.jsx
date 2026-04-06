@@ -19,18 +19,14 @@ const adminLinks = [
     { to: '/admin', icon: HiOutlineShieldCheck, label: 'Control Center' },
     { to: '/admin/departments', icon: HiOutlineOfficeBuilding, label: 'Academic Units' },
     { to: '/admin/users', icon: HiOutlineUserGroup, label: 'Member Access' },
-    { to: '/admin/reports', icon: HiOutlineDocumentReport, label: 'Audit Logs' },
     { to: '/admin/settings', icon: HiOutlineCog, label: 'Preferences' },
 ];
 
 const facultyLinks = [
     { to: '/faculty', icon: HiOutlineViewGrid, label: 'Overview' },
-    { to: '/faculty/students', icon: HiOutlineUserGroup, label: 'Diagnostics' },
     { to: '/faculty/concepts', icon: HiOutlineLightBulb, label: 'Knowledge Graph' },
     { to: '/faculty/questions', icon: HiOutlineDocumentText, label: 'AI Generator' },
-    { to: '/faculty/tests', icon: HiOutlineCalendar, label: 'Scheduler' },
     { to: '/faculty/attendance', icon: HiOutlineUserGroup, label: 'Attendance' },
-    { to: '/faculty/reports', icon: HiOutlineDocumentReport, label: 'Analytics' },
     { to: '/faculty/settings', icon: HiOutlineCog, label: 'Settings' },
 ];
 
@@ -38,14 +34,29 @@ const studentLinks = [
     { to: '/student', icon: HiOutlineViewGrid, label: 'Learning Path' },
     { to: '/student/assessments', icon: HiOutlineDocumentText, label: 'Live Assessment' },
     { to: '/student/concepts', icon: HiOutlineLightBulb, label: 'Knowledge Map' },
-    { to: '/student/reports', icon: HiOutlineDocumentReport, label: 'Academic Matrix' },
+    { to: '/student/feedback', icon: HiOutlineDocumentReport, label: 'Mentorship Hub' },
     { to: '/student/settings', icon: HiOutlineCog, label: 'Settings' },
 ];
 
 export default function Sidebar({ isOpen, onClose, role }) {
-    const { logout } = useAuth();
+    const { logout, user } = useAuth();
     const navigate = useNavigate();
     const location = useLocation();
+    const [hasNewFeedback, setHasNewFeedback] = useState(false);
+
+    useEffect(() => {
+        if (user?.role === 'student') {
+            const checkFeedback = async () => {
+                const results = await mockDb.getResultsByStudent(user.email);
+                const unread = results.some(r => r.teacherFeedback && !r.isFeedbackRead);
+                setHasNewFeedback(unread);
+            };
+            checkFeedback();
+            // Optional: Listen for storage changes to update live
+            window.addEventListener('storage', checkFeedback);
+            return () => window.removeEventListener('storage', checkFeedback);
+        }
+    }, [user, location.pathname]);
 
     let links = studentLinks;
     if (role === 'admin') links = adminLinks;
@@ -107,6 +118,11 @@ export default function Sidebar({ isOpen, onClose, role }) {
                                         }`}
                                 >
                                     <link.icon className={`w-5 h-5 transition-transform duration-200 ${isActive ? '' : 'group-hover:scale-110'}`} />
+
+                                    {/* Unread Feedback Notification Dot */}
+                                    {link.label === 'Mentorship Hub' && hasNewFeedback && (
+                                        <span className="absolute top-2 right-2 w-2.5 h-2.5 bg-red-500 border-2 border-white dark:border-surface-secondary rounded-full animate-pulse shadow-sm shadow-red-500/30" />
+                                    )}
 
                                     {/* Active indicator */}
                                     {isActive && (

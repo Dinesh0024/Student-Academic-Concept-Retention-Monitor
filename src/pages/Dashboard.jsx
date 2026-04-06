@@ -49,7 +49,7 @@ export default function Dashboard() {
 
     const handleFeedbackSubmit = async (resultId) => {
         if (!feedbackText[resultId]) return;
-        await mockDb.updateResultFeedback(resultId, feedbackText[resultId]);
+        await mockDb.updateResultFeedback(resultId, feedbackText[resultId], facultyUser?.name || 'Faculty Member');
         fetchData();
         toast.success("Feedback submitted");
     };
@@ -234,6 +234,7 @@ export default function Dashboard() {
     const lineChartData = analytics.trend;
     const barChartData = analytics.subjects;
 
+    const atRiskStudents = students.filter(s => s.retentionScore <= 65).sort((a, b) => a.retentionScore - b.retentionScore);
     const topStudents = [...students].sort((a, b) => b.retentionScore - a.retentionScore).slice(0, 4);
 
     return (
@@ -250,10 +251,10 @@ export default function Dashboard() {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
-                    <StatCard title="Active Students" value="1,240" trend={5.2} icon={HiOutlineUserGroup} />
+                    <StatCard title="Active Students" value={students.length} trend={5.2} icon={HiOutlineUserGroup} />
                     <StatCard title="Avg. Retention" value="76%" trend={3.1} icon={HiOutlineTrendingUp} />
-                    <StatCard title="Priority Alerts" value="12" trend={-2.3} icon={HiOutlineExclamationCircle} />
-                    <StatCard title="Top Performers" value="284" trend={1.2} icon={HiOutlineStar} />
+                    <StatCard title="Priority Alerts" value={atRiskStudents.length} trend={-2.3} icon={HiOutlineExclamationCircle} />
+                    <StatCard title="Top Performers" value={topStudents.length} trend={1.2} icon={HiOutlineStar} />
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-10">
@@ -277,6 +278,62 @@ export default function Dashboard() {
                         <div className="flex-1">
                             <Bar data={barChartData} options={chartOptions} />
                         </div>
+                    </div>
+                </div>
+
+                {/* Critical Intervention Radar */}
+                <div className="mb-10 animate-in fade-in slide-in-from-bottom-4 duration-1000">
+                    <div className="flex items-center gap-3 mb-6">
+                        <div className="w-10 h-10 rounded-2xl bg-rose-500/10 flex items-center justify-center text-rose-500">
+                            <HiOutlineExclamationCircle className="w-6 h-6 animate-pulse" />
+                        </div>
+                        <div>
+                            <h2 className="text-2xl font-black text-text-primary tracking-tight">Critical Intervention Radar</h2>
+                            <p className="text-sm font-medium text-text-secondary">Immediate priority candidates identified by retention audit</p>
+                        </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        {atRiskStudents.map((s, i) => (
+                            <motion.div 
+                                key={s.id} 
+                                initial={{ opacity: 0, scale: 0.95 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                transition={{ delay: i * 0.1 }}
+                                className="premium-card p-6 border-l-4 border-l-rose-500 bg-rose-500/[0.02] group hover:bg-rose-500/[0.04] transition-all"
+                            >
+                                <div className="flex justify-between items-start mb-6">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-12 h-12 rounded-full bg-surface shadow-sm border border-border/5 flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">
+                                            {s.avatar}
+                                        </div>
+                                        <div>
+                                            <h4 className="font-bold text-text-primary text-sm leading-none mb-1">{s.name}</h4>
+                                            <p className="text-[10px] font-black text-text-tertiary tracking-widest uppercase">{s.enrollment}</p>
+                                        </div>
+                                    </div>
+                                    <div className="text-right">
+                                        <span className="text-lg font-black text-rose-500">{s.retentionScore}%</span>
+                                        <p className="text-[8px] font-black text-rose-500/60 uppercase tracking-[0.2em] leading-none">RETENTION</p>
+                                    </div>
+                                </div>
+                                
+                                <div className="space-y-3 mb-6">
+                                    <p className="text-[10px] font-black text-text-tertiary uppercase tracking-widest leading-none">Weak Points</p>
+                                    <div className="flex flex-wrap gap-2">
+                                        {s.weakConcepts?.slice(0, 3).map(cid => (
+                                            <span key={cid} className="px-2 py-1 rounded-lg bg-rose-500/10 text-rose-600 text-[9px] font-bold border border-rose-500/5">
+                                                {concepts.find(c => c.id == cid)?.name || 'Technical Gap'}
+                                            </span>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                <button className="w-full apple-btn !py-2.5 !text-[10px] !font-black !uppercase !tracking-widest bg-rose-500 text-white shadow-lg shadow-rose-500/20 hover:scale-[1.02] active:scale-[0.98] transition-all">
+                                    Draft Intervention
+                                </button>
+                            </motion.div>
+                        ))}
                     </div>
                 </div>
 

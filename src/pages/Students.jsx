@@ -11,6 +11,7 @@ import toast from 'react-hot-toast';
 export default function Students() {
     const [studentList, setStudentList] = useState([]);
     const [search, setSearch] = useState('');
+    const [filterRisk, setFilterRisk] = useState(false);
 
     const fetchStudents = async () => {
         const data = await mockDb.getStudents();
@@ -25,11 +26,14 @@ export default function Students() {
     const [editStudent, setEditStudent] = useState(null);
     const [form, setForm] = useState({ name: '', email: '', enrollment: '', department: '', semester: '' });
 
-    const filtered = studentList.filter(s =>
-        s.name.toLowerCase().includes(search.toLowerCase()) ||
-        s.enrollment.toLowerCase().includes(search.toLowerCase()) ||
-        s.department.toLowerCase().includes(search.toLowerCase())
-    );
+    const filtered = studentList.filter(s => {
+        const matchesSearch = s.name.toLowerCase().includes(search.toLowerCase()) ||
+            s.enrollment.toLowerCase().includes(search.toLowerCase()) ||
+            s.department.toLowerCase().includes(search.toLowerCase());
+        
+        if (filterRisk) return matchesSearch && s.retentionScore <= 65;
+        return matchesSearch;
+    });
 
     const openEdit = (s) => {
         setEditStudent(s);
@@ -90,8 +94,19 @@ export default function Students() {
                                 placeholder="Filter records..."
                             />
                         </div>
-                        <div className="flex gap-2">
-                            <button className="p-2 text-gray-400 hover:text-gray-600 transition-colors"><HiOutlinePencil className="w-5 h-5" /></button>
+                        <div className="flex gap-2 bg-gray-50 p-1.5 rounded-xl border border-gray-100">
+                            <button 
+                                onClick={() => setFilterRisk(false)}
+                                className={`px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${!filterRisk ? 'bg-white text-text-primary shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
+                            >
+                                All Students
+                            </button>
+                            <button 
+                                onClick={() => setFilterRisk(true)}
+                                className={`px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${filterRisk ? 'bg-rose-500 text-white shadow-lg shadow-rose-500/20' : 'text-gray-400 hover:text-rose-500'}`}
+                            >
+                                Critical Retention
+                            </button>
                         </div>
                     </div>
 
@@ -123,8 +138,17 @@ export default function Students() {
                                             </td>
                                             <td className="px-8 py-5">
                                                 <div className="flex items-center gap-1.5">
-                                                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                                                    <span className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">Active</span>
+                                                    {s.retentionScore <= 65 ? (
+                                                        <>
+                                                            <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse"></span>
+                                                            <span className="text-[10px] font-black text-rose-600 uppercase tracking-widest">Critical</span>
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                                                            <span className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">Active</span>
+                                                        </>
+                                                    )}
                                                 </div>
                                             </td>
                                             <td className="px-8 py-5">
