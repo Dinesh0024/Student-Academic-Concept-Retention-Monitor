@@ -1,31 +1,134 @@
+import mockDb from '../utils/apiDb';
 import { useState, useEffect } from 'react';
-import { HiOutlineBookOpen, HiOutlineCheckCircle, HiOutlineClock, HiOutlineFire, HiOutlineTrendingUp, HiOutlineStar, HiOutlineLightBulb, HiOutlineDocumentReport, HiOutlineCog } from 'react-icons/hi';
+import { HiOutlineCheckCircle, HiOutlineClock, HiOutlineFire, HiOutlineTrendingUp, HiOutlineStar, HiOutlineLightBulb, HiOutlineDocumentReport, HiOutlineCog, HiOutlineBell } from 'react-icons/hi';
 import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import PageTransition from '../components/PageTransition';
 import StatCard from '../components/StatCard';
-import mockDb from '../utils/mockDb';
 import { QUESTION_BANK } from '../utils/questionBank';
+import toast from 'react-hot-toast';
+import AcademicHealthCard from '../components/AcademicHealthCard';
+import ConceptDecayRadar from '../components/ConceptDecayRadar';
+import { calculateAcademicHealthScore, calculateConceptDecayRadar } from '../utils/analytics';
 
 export default function StudentDashboard() {
     const { user } = useAuth();
+    const navigate = useNavigate();
     const [allTests, setAllTests] = useState([]);
     const [pastResults, setPastResults] = useState([]);
+    const [liveTestNotification, setLiveTestNotification] = useState(null);
+    const [selectedStat, setSelectedStat] = useState(null);
 
     useEffect(() => {
+        if (!user?.email) return;
+        let cancelled = false;
+        const storageKey = `student_seen_tests_${user.email}`;
+
         const fetchData = async () => {
-            const tests = await mockDb.getTests();
-            setAllTests(tests);
-            if (user) {
-                const results = await mockDb.getResultsByStudent(user.email);
+            try {
+                const [tests, results] = await Promise.all([
+                    mockDb.getTests(),
+                    mockDb.getResultsByStudent(user.email)
+                ]);
+                if (cancelled) return;
+                setAllTests(tests);
                 setPastResults(results);
+
+                let seenIds = [];
+                try {
+                    seenIds = JSON.parse(localStorage.getItem(storageKey) || '[]');
+                } catch {
+                    seenIds = [];
+                }
+
+                const newTests = tests.filter((test) => !seenIds.includes(String(test.id)));
+                if (newTests.length > 0) {
+                    const newestTest = [...newTests].sort((a, b) => String(b.created_at || b.id).localeCompare(String(a.created_at || a.id)))[0];
+                    setLiveTestNotification(newestTest);
+                    toast.custom((t) => (
+                        <button
+                            onClick={() => { toast.dismiss(t.id); navigate('/student/test', { state: { testConfig: newestTest } }); }}
+                            className="w-[360px] bg-white border border-emerald-200 shadow-2xl rounded-2xl p-4 text-left flex items-center gap-3"
+                        >
+                            <span className="w-3 h-3 rounded-full bg-emerald-500 animate-pulse flex-shrink-0" />
+                            <span>
+                                <span className="block text-sm font-black text-gray-900">New test deployed</span>
+                                <span className="block text-xs text-gray-500 mt-1">{newestTest.name} · {newestTest.subject}</span>
+                            </span>
+                        </button>
+                    ), { duration: 10000 });
+                    localStorage.setItem(storageKey, JSON.stringify([...new Set([...seenIds, ...tests.map((test) => String(test.id))]) ]));
+                } else if (liveTestNotification) {
+                    const exists = tests.some((test) => String(test.id) === String(liveTestNotification.id));
+                    if (!exists) setLiveTestNotification(null);
+                }
+            } catch (error) {
+                console.error('Unable to refresh student tests:', error);
             }
         };
-        fetchData();
-    }, [user]);
 
-    const upcomingTests = allTests.filter(t => !t.isLive);
+        fetchData();
+        const interval = setInterval(fetchData, 5000);
+        return () => {
+            cancelled = true;
+            clearInterval(interval);
+        };
+    }, [user?.email, navigate]);
+
+    // ── Proactive Faculty Feedback Notification ─────────────────────────────
+    // Fire once per browser session so it's visible but not annoying
+    useEffect(() => {
+        if (!user?.email) return;
+        const sessionKey = `feedback_notified_${user.email}`;
+        if (sessionStorage.getItem(sessionKey)) return; // already shown this session
+
+        mockDb.getUnreadFeedbackCount(user.email).then((count) => {
+            if (count > 0) {
+                sessionStorage.setItem(sessionKey, 'true');
+                toast(
+                    (t) => (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                            <span style={{ fontSize: '20px' }}>📬</span>
+                            <div style={{ flex: 1 }}>
+                                <p style={{ fontWeight: 700, fontSize: '13px', marginBottom: '2px' }}>
+                                    {count} new faculty feedback{count > 1 ? 's' : ''} received
+                                </p>
+                                <p style={{ fontSize: '11px', color: '#6b7280', fontWeight: 600 }}>
+                                    Your mentor has reviewed your performance
+                                </p>
+                            </div>
+                            <button
+                                onClick={() => { toast.dismiss(t.id); navigate('/student/feedback'); }}
+                                style={{
+                                    background: '#6366f1', color: '#fff',
+                                    border: 'none', borderRadius: '10px',
+                                    padding: '6px 14px', fontSize: '11px',
+                                    fontWeight: 700, cursor: 'pointer',
+                                    whiteSpace: 'nowrap'
+                                }}
+                            >
+                                View Now
+                            </button>
+                        </div>
+                    ),
+                    {
+                        duration: 8000,
+                        icon: null,
+                        style: {
+                            maxWidth: '420px',
+                            padding: '14px 18px',
+                            borderLeft: '4px solid #6366f1',
+                            borderRadius: '16px',
+                            boxShadow: '0 20px 40px rgba(99,102,241,0.18)',
+                        },
+                    }
+                );
+            }
+        });
+    }, [user?.email]);
+
+    const upcomingTests = allTests.filter(t => !t.isLive && t.date && new Date(`${t.date}T${t.time || '23:59'}`) >= new Date());
     const aiLiveAssessments = allTests.filter(t => {
         if (!t.isLive) return false;
         if (t.date && t.endTime) {
@@ -40,48 +143,74 @@ export default function StudentDashboard() {
         ? Math.round(pastResults.reduce((acc, curr) => acc + (typeof curr.score === 'number' ? curr.score : 0), 0) / pastResults.length)
         : 0;
 
-    // Dynamically calculate weak topics based on past results
-    const calculateWeakTopics = () => {
-        if (!pastResults || pastResults.length === 0) return [];
-
-        const subjectScores = {};
-
-        pastResults.forEach(r => {
-            if (typeof r.score === 'number') {
-                if (!subjectScores[r.testName]) {
-                    subjectScores[r.testName] = { total: 0, count: 0, subject: r.testName.replace(/ Midterm| Baseline| Quiz/g, '') };
-                }
-                subjectScores[r.testName].total += r.score;
-                subjectScores[r.testName].count += 1;
-            }
-        });
-
-        const topics = Object.keys(subjectScores).map(testName => {
-            const data = subjectScores[testName];
-            return {
-                name: testName,
-                subject: data.subject,
-                mastery: Math.round(data.total / data.count)
-            };
-        });
-
-        const filteredTopics = topics.filter(t => t.mastery < 80).sort((a, b) => a.mastery - b.mastery).slice(0, 4);
-
-        // If no past data or no weak topics, provide some sample defaults
-        if (filteredTopics.length === 0) {
-            return [
-                { name: 'Dynamic Programming', subject: 'Algorithms', mastery: 45 },
-                { name: 'Paging Algorithms', subject: 'Operating Systems', mastery: 55 },
-                { name: 'Red-Black Trees', subject: 'Data Structures', mastery: 38 },
-                { name: 'TCP/IP Handshake', subject: 'Networks', mastery: 62 }
-            ];
+    const assessedCount = pastResults.filter(result => !result.isMissed).length;
+    const assessmentParticipation = pastResults.length > 0
+        ? Math.round((assessedCount / pastResults.length) * 100)
+        : null;
+    const completedResults = pastResults.filter(result => !result.isMissed);
+    const missedResults = pastResults.filter(result => result.isMissed);
+    const statDetails = {
+        average: {
+            title: 'Assessment Average Details',
+            description: 'Scores from your completed assessments.',
+            items: completedResults.map(result => ({
+                id: result.id,
+                title: result.testName || 'Assessment',
+                detail: result.timestamp,
+                value: typeof result.score === 'number' ? `${result.score}%` : 'Score unavailable'
+            }))
+        },
+        participation: {
+            title: 'Assessment Participation Details',
+            description: `${assessedCount} completed and ${missedResults.length} missed out of ${pastResults.length} recorded assessments.`,
+            items: pastResults.map(result => ({
+                id: result.id,
+                title: result.testName || 'Assessment',
+                detail: result.timestamp,
+                value: result.isMissed ? 'Missed' : 'Completed'
+            }))
+        },
+        completed: {
+            title: 'Completed Tests',
+            description: 'Your completed assessments and scores.',
+            items: completedResults.map(result => ({
+                id: result.id,
+                title: result.testName || 'Assessment',
+                detail: result.timestamp,
+                value: typeof result.score === 'number' ? `${result.score}%` : 'Score unavailable'
+            }))
+        },
+        missed: {
+            title: 'Missed Tests',
+            description: 'Assessments recorded as missed.',
+            items: missedResults.map(result => ({
+                id: result.id,
+                title: result.testName || 'Assessment',
+                detail: result.timestamp,
+                value: 'Missed'
+            }))
+        },
+        upcoming: {
+            title: 'Upcoming Tests',
+            description: 'Scheduled assessments that are still available.',
+            items: upcomingTests.map(test => ({
+                id: test.id,
+                title: test.name || test.subject || 'Assessment',
+                detail: [test.subject, test.date, test.time, test.duration ? `${test.duration} min` : null]
+                    .filter(Boolean)
+                    .join(' · '),
+                test
+            }))
         }
-
-        return filteredTopics;
     };
 
-    const weakTopics = calculateWeakTopics();
-
+    const formatAssessmentDate = (value) => {
+        if (!value) return 'Date not available';
+        const date = new Date(value);
+        return Number.isNaN(date.getTime())
+            ? 'Date not available'
+            : date.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+    };
 
     return (
         <PageTransition>
@@ -96,21 +225,98 @@ export default function StudentDashboard() {
                             My Learning <span className="text-accent italic">Path</span>
                         </h1>
                         <p className="text-lg text-text-secondary font-medium max-w-xl leading-relaxed">
-                            Welcome back, <span className="text-text-primary font-bold">{user?.name || 'Student'}</span>. Your intellectual retention is currently at <span className="text-accent underline decoration-2 underline-offset-4">{overallMastery}%</span> capacity.
+                            Welcome back, <span className="text-text-primary font-bold">{user?.name || 'Student'}</span>. {pastResults.length > 0 ? <>Your current assessment average is <span className="text-accent underline decoration-2 underline-offset-4">{overallMastery}%</span>.</> : 'Your academic insights will appear here after your first assessment.'}
                         </p>
                     </div>
                 </header>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-                    <StatCard title="Overall Mastery" value={`${overallMastery}%`} trend={overallMastery > 75 ? 3.2 : -1.5} icon={HiOutlineFire} index={0} />
-                    <StatCard title="Tests Completed" value="12" icon={HiOutlineCheckCircle} index={1} />
-                    <StatCard title="Concept Velocity" value="High" icon={HiOutlineTrendingUp} index={2} />
-                    <StatCard title="Global Rank" value="#3" icon={HiOutlineStar} index={3} />
+                {liveTestNotification && (
+                    <Link
+                        to="/student/test"
+                        state={{ testConfig: liveTestNotification }}
+                        className="mb-8 block rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-4 shadow-sm hover:bg-emerald-100 transition-colors"
+                    >
+                        <div className="flex items-center gap-3">
+                            <span className="w-3 h-3 rounded-full bg-emerald-500 animate-pulse flex-shrink-0" />
+                            <div>
+                                <p className="text-sm font-black text-emerald-900">Live test notification</p>
+                                <p className="text-xs font-semibold text-emerald-700 mt-1">
+                                    {liveTestNotification.name} · {liveTestNotification.subject} · Tap to view
+                                </p>
+                            </div>
+                        </div>
+                    </Link>
+                )}
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-12">
+                    <StatCard title="Assessment Average" value={pastResults.length > 0 ? `${overallMastery}%` : '—'} icon={HiOutlineFire} index={0} onClick={() => setSelectedStat(selectedStat === 'average' ? null : 'average')} isActive={selectedStat === 'average'} detailsId="student-stat-details" />
+                    <StatCard title="Assessment Participation" value={assessmentParticipation === null ? '—' : `${assessmentParticipation}%`} icon={HiOutlineClock} index={1} onClick={() => setSelectedStat(selectedStat === 'participation' ? null : 'participation')} isActive={selectedStat === 'participation'} detailsId="student-stat-details" />
+                    <StatCard title="Tests Completed" value={completedResults.length} icon={HiOutlineCheckCircle} index={2} onClick={() => setSelectedStat(selectedStat === 'completed' ? null : 'completed')} isActive={selectedStat === 'completed'} detailsId="student-stat-details" />
+                    <StatCard title="Tests Missed" value={missedResults.length} icon={HiOutlineTrendingUp} index={3} onClick={() => setSelectedStat(selectedStat === 'missed' ? null : 'missed')} isActive={selectedStat === 'missed'} detailsId="student-stat-details" />
+                    <StatCard title="Upcoming Tests" value={upcomingTests.length} icon={HiOutlineStar} index={4} onClick={() => setSelectedStat(selectedStat === 'upcoming' ? null : 'upcoming')} isActive={selectedStat === 'upcoming'} detailsId="student-stat-details" />
                 </div>
 
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-14">
+                {selectedStat && (
+                    <motion.section
+                        id="student-stat-details"
+                        role="region"
+                        aria-labelledby="student-stat-details-title"
+                        initial={{ opacity: 0, height: 0, y: -8 }}
+                        animate={{ opacity: 1, height: 'auto', y: 0 }}
+                        className="premium-card p-6 mb-12 overflow-hidden"
+                    >
+                        <div className="flex items-start justify-between gap-4 mb-5">
+                            <div>
+                                <h2 id="student-stat-details-title" className="text-lg font-black text-text-primary">
+                                    {statDetails[selectedStat].title}
+                                </h2>
+                                <p className="text-sm text-text-secondary mt-1">{statDetails[selectedStat].description}</p>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={() => setSelectedStat(null)}
+                                className="text-sm font-bold text-text-secondary hover:text-text-primary rounded-lg px-3 py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                            >
+                                Close
+                            </button>
+                        </div>
+                        {statDetails[selectedStat].items.length === 0 ? (
+                            <p className="text-sm font-medium text-text-tertiary">No details to show yet.</p>
+                        ) : (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                {statDetails[selectedStat].items.map(item => (
+                                    <div key={item.id} className="flex items-center justify-between gap-4 rounded-xl bg-surface-secondary/50 border border-border/5 p-4">
+                                        <div className="min-w-0">
+                                            <h3 className="text-sm font-bold text-text-primary truncate">{item.title}</h3>
+                                            <p className="text-xs text-text-tertiary mt-1">
+                                                {selectedStat === 'upcoming'
+                                                    ? item.detail
+                                                    : formatAssessmentDate(item.detail)}
+                                            </p>
+                                        </div>
+                                        {item.test ? (
+                                            <Link
+                                                to="/student/test"
+                                                state={{ testConfig: item.test }}
+                                                className="apple-btn apple-btn-primary !py-2 !px-4 !text-[10px] !font-black !uppercase !tracking-widest flex-shrink-0"
+                                            >
+                                                View
+                                            </Link>
+                                        ) : (
+                                            <span className={`text-sm font-black flex-shrink-0 ${item.value === 'Missed' ? 'text-red-500' : 'text-accent'}`}>
+                                                {item.value}
+                                            </span>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </motion.section>
+                )}
+
+                <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-14">
                     {[
-                        { to: "/student/concepts", icon: HiOutlineLightBulb, label: "Knowledge Map", sub: "Deep Insights" },
+                        { to: "/student/doubts", icon: HiOutlineLightBulb, label: "QueryCoach", sub: "Ask Anything" },
                         { to: "/student/assessments", icon: HiOutlineCheckCircle, label: "Live Testing", sub: "Assessments" },
                         { to: "/student/settings", icon: HiOutlineCog, label: "Portal Hub", sub: "Preferences" }
                     ].map((item, i) => (
@@ -210,123 +416,11 @@ export default function StudentDashboard() {
                             </div>
                         </div>
 
-                        {/* Upcoming Assessments */}
-                        <div className="premium-card p-8">
-                            <h3 className="text-lg font-bold text-text-primary mb-6 flex items-center gap-2">
-                                <HiOutlineClock className="w-5 h-5 text-accent" />
-                                Pending Assessments
-                            </h3>
-                            <div className="space-y-4">
-                                {upcomingTests.length === 0 ? (
-                                    <p className="text-sm text-text-tertiary font-medium">No pending assessments at this time.</p>
-                                ) : (
-                                    upcomingTests.map((t) => (
-                                        <div key={t.id} className="flex flex-col sm:flex-row justify-between items-center p-5 rounded-2xl bg-surface-secondary/50 border border-border/5 group hover:bg-surface hover:shadow-xl hover:shadow-accent/5 transition-all duration-500">
-                                            <div className="mb-4 sm:mb-0">
-                                                <h4 className="font-bold text-text-primary tracking-tight">{t.name}</h4>
-                                                <p className="text-xs font-bold text-text-tertiary uppercase tracking-widest mt-1">{t.subject} • {new Date(t.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} • {t.time}</p>
-                                            </div>
-                                            <Link to="/student/test" state={{ testConfig: t }} className="apple-btn apple-btn-primary !py-2.5 !px-8 text-[11px] font-black uppercase tracking-widest">Launch Test</Link>
-                                        </div>
-                                    ))
-                                )}
-                            </div>
-                        </div>
-
-                        {/* Concept Weakness - Dynamic Drawbacks */}
-                        <div className="premium-card p-10 border-l-8 border-l-text-primary/20 flex flex-col shadow-xl shadow-black/5">
-                            <h3 className="text-2xl font-black text-text-primary mb-3 tracking-tight">Attention Required</h3>
-                            <p className="text-base font-medium text-text-secondary mb-8">
-                                {pastResults.length > 0 && weakTopics[0]?.name !== 'Dynamic Programming'
-                                    ? "Automated diagnostics identified critical gaps based on your recent assessments:"
-                                    : "Automated diagnostics identified critical gaps in the following fundamental concepts:"}
-                            </p>
-
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                                {weakTopics.map((topic, i) => (
-                                    <div key={i} className="p-6 rounded-3xl bg-surface-secondary/50 border border-border/10 hover:border-text-primary transition-all">
-                                        <div className="flex justify-between items-center mb-4">
-                                            <span className="text-base font-bold text-text-primary">{topic.name}</span>
-                                            <span className="text-[10px] font-black text-text-primary bg-text-primary/5 px-3 py-1 rounded-xl">{topic.mastery}% Retention</span>
-                                        </div>
-                                        <div className="w-full h-2 bg-surface-tertiary rounded-full overflow-hidden mb-3">
-                                            <motion.div
-                                                initial={{ width: 0 }}
-                                                animate={{ width: `${topic.mastery}%` }}
-                                                className="h-full bg-text-primary"
-                                            />
-                                        </div>
-                                        <p className="text-[10px] font-black text-text-tertiary uppercase tracking-widest">{topic.subject}</p>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-
-
                     </div>
 
                     <div className="space-y-8">
-                        {/* History */}
-                        <div className="premium-card p-8">
-                            <h3 className="text-lg font-bold text-text-primary mb-6 flex items-center gap-2">
-                                <HiOutlineBookOpen className="w-5 h-5 text-accent" />
-                                Previous Scores
-                            </h3>
-                            <div className="space-y-4">
-                                {pastResults.length === 0 ? (
-                                    <p className="text-sm text-text-tertiary font-medium">No completed assessments yet.</p>
-                                ) : (
-                                    pastResults.map((r) => (
-                                        <div key={r.id} className="flex flex-col p-4 bg-surface-secondary/50 rounded-xl transition-colors border border-border/5 group">
-                                            <div className="flex justify-between items-center mb-2">
-                                                <div>
-                                                    <h4 className="text-sm font-bold text-text-primary">{r.testName}</h4>
-                                                    <p className="text-[10px] font-bold text-text-tertiary uppercase tracking-tighter">{new Date(r.timestamp).toLocaleDateString()}</p>
-                                                </div>
-                                                <div className="text-[11px] font-black text-text-primary">
-                                                    {r.score}%
-                                                </div>
-                                            </div>
-                                            {r.aiDrawbacks && (
-                                                <div className="mt-3 space-y-2">
-                                                    <div className="p-3 bg-surface-tertiary border border-border/10 rounded-xl">
-                                                        <p className="text-[9px] font-black text-text-tertiary uppercase tracking-widest mb-1">Identified Fault</p>
-                                                        <p className="text-[11px] font-medium text-text-secondary">{r.aiDrawbacks}</p>
-                                                    </div>
-                                                    <div className="p-3 bg-text-primary/5 border border-text-primary/10 rounded-xl">
-                                                        <p className="text-[9px] font-black text-text-primary uppercase tracking-widest mb-1">Recommended Solution</p>
-                                                        <p className="text-[11px] font-black text-text-primary">{r.aiSolutions}</p>
-                                                    </div>
-                                                </div>
-                                            )}
-                                        </div>
-                                    ))
-                                )}
-                            </div>
-                        </div>
-
-                        {/* Leaderboard */}
-                        <div className="premium-card p-8 border border-border/10">
-                            <h3 className="text-lg font-black text-text-primary mb-1">Global Ranking</h3>
-                            <p className="text-[10px] font-bold text-text-tertiary mb-6 uppercase tracking-widest">Department Benchmarking</p>
-
-                            <div className="space-y-3">
-                                {[
-                                    { name: 'Alex M.', score: 96, isCurrent: false },
-                                    { name: 'Sophia L.', score: 94, isCurrent: false },
-                                    { name: `${user?.name || 'Student'} (You)`, score: 88, isCurrent: true },
-                                    { name: 'David K.', score: 82, isCurrent: false },
-                                ].map((p, i) => (
-                                    <div key={i} className={`flex justify-between p-3 rounded-xl transition-all border ${p.isCurrent ? 'bg-text-primary text-surface border-text-primary shadow-lg scale-105' : 'bg-surface-secondary/50 text-text-secondary border-transparent'}`}>
-                                        <div className="flex items-center gap-3">
-                                            <span className={`text-[10px] font-black w-4 ${p.isCurrent ? 'text-surface/50' : 'text-text-tertiary'}`}>#{i + 1}</span>
-                                            <span className={`text-sm ${p.isCurrent ? 'font-black' : 'font-medium'}`}>{p.name}</span>
-                                        </div>
-                                        <span className="text-sm font-black">{p.score}%</span>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
+                        {/* Real Leaderboard from results */}
+                        <RealLeaderboard currentUserEmail={user?.email} currentUserName={user?.name} />
                     </div>
                 </div>
             </div>
@@ -334,3 +428,53 @@ export default function StudentDashboard() {
     );
 }
 
+// Leaderboard computed from real stored results
+function RealLeaderboard({ currentUserEmail, currentUserName }) {
+    const [ranking, setRanking] = useState([]);
+
+    useEffect(() => {
+        const compute = async () => {
+            const allResults = await mockDb.getResults();
+            const scoreMap = {};
+            allResults.forEach(r => {
+                if (r.isMissed || typeof r.score !== 'number') return;
+                if (!scoreMap[r.studentEmail]) {
+                    scoreMap[r.studentEmail] = { name: r.studentName, total: 0, count: 0, email: r.studentEmail };
+                }
+                scoreMap[r.studentEmail].total += r.score;
+                scoreMap[r.studentEmail].count += 1;
+            });
+            const sorted = Object.values(scoreMap)
+                .map(s => ({ ...s, avg: Math.round(s.total / s.count) }))
+                .sort((a, b) => b.avg - a.avg)
+                .slice(0, 5);
+            setRanking(sorted);
+        };
+        compute();
+    }, []);
+
+    if (ranking.length === 0) return null;
+
+    return (
+        <div className="premium-card p-8 border border-border/10">
+            <h3 className="text-lg font-black text-text-primary mb-1">Global Ranking</h3>
+            <p className="text-[10px] font-bold text-text-tertiary mb-6 uppercase tracking-widest">Based on Average Test Scores</p>
+            <div className="space-y-3">
+                {ranking.map((p, i) => {
+                    const isCurrent = p.email === currentUserEmail;
+                    return (
+                        <div key={p.email} className={`flex justify-between p-3 rounded-xl transition-all border ${isCurrent ? 'bg-text-primary text-surface border-text-primary shadow-lg scale-105' : 'bg-surface-secondary/50 text-text-secondary border-transparent'}`}>
+                            <div className="flex items-center gap-3">
+                                <span className={`text-[10px] font-black w-4 ${isCurrent ? 'text-surface/50' : 'text-text-tertiary'}`}>#{i + 1}</span>
+                                <span className={`text-sm ${isCurrent ? 'font-black' : 'font-medium'}`}>
+                                    {isCurrent ? `${p.name} (You)` : p.name}
+                                </span>
+                            </div>
+                            <span className="text-sm font-black">{p.avg}%</span>
+                        </div>
+                    );
+                })}
+            </div>
+        </div>
+    );
+}

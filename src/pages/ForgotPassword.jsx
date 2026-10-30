@@ -21,8 +21,8 @@ export default function ForgotPassword() {
             <div className="min-h-screen flex items-center justify-center p-4 auth-gradient">
                 <div className="absolute top-6 left-6 flex items-center gap-2">
                     <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-                        <div className="w-8 h-8 rounded-lg bg-[var(--color-primary)] text-white flex items-center justify-center font-bold">S</div>
-                        <span className="font-bold text-xl tracking-tight">StudentRetain</span>
+                        <div className="w-8 h-8 rounded-lg bg-[var(--color-primary)] text-white flex items-center justify-center font-bold">A</div>
+                        <span className="font-bold text-xl tracking-tight">AcademiQ</span>
                     </Link>
                 </div>
 

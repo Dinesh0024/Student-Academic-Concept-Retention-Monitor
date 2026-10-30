@@ -1,9 +1,11 @@
+import mockDb from '../utils/apiDb';
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { HiOutlineSparkles, HiOutlineCheck, HiOutlinePencilAlt, HiOutlineTrash, HiOutlineCog, HiOutlineClock, HiOutlineCalendar } from 'react-icons/hi';
 import PageTransition from '../components/PageTransition';
-import mockDb from '../utils/mockDb';
 import toast from 'react-hot-toast';
+import { generateUniqueQuestions } from '../utils/questionGeneratorEngine';
+import { subjects as referenceSubjects, concepts as referenceConcepts } from '../data/mockData';
 
 export default function QuestionGenerator() {
     const [subjects, setSubjects] = useState([]);
@@ -12,15 +14,32 @@ export default function QuestionGenerator() {
     const [conceptId, setConceptId] = useState('');
 
     useEffect(() => {
-        const fetchRemoteData = async () => {
-            const [sData, cData] = await Promise.all([
-                mockDb.getSubjects(),
-                mockDb.getConcepts()
-            ]);
-            setSubjects(sData);
-            setConcepts(cData);
+        let isMounted = true;
+        const fetchCatalog = async () => {
+            try {
+                const [subjectRecords, conceptRecords] = await Promise.all([
+                    mockDb.getSubjects(),
+                    mockDb.getConcepts()
+                ]);
+                if (!isMounted) return;
+
+                if (subjectRecords.length || conceptRecords.length) {
+                    setSubjects(subjectRecords);
+                    setConcepts(conceptRecords);
+                } else {
+                    setSubjects(referenceSubjects);
+                    setConcepts(referenceConcepts);
+                }
+            } catch (error) {
+                console.error('Failed to load question generator catalog:', error);
+                if (!isMounted) return;
+                setSubjects(referenceSubjects);
+                setConcepts(referenceConcepts);
+                toast.error('Database catalog unavailable; using built-in subjects and concepts.');
+            }
         };
-        fetchRemoteData();
+        fetchCatalog();
+        return () => { isMounted = false; };
     }, []);
 
     const [difficulty, setDifficulty] = useState('Medium');
@@ -32,8 +51,110 @@ export default function QuestionGenerator() {
     const [showDeployModal, setShowDeployModal] = useState(false);
     const [deployStartTime, setDeployStartTime] = useState('');
     const [deployEndTime, setDeployEndTime] = useState('');
+    const [isDeploying, setIsDeploying] = useState(false);
 
-    const filteredConcepts = concepts.filter(c => c.subjectId === subjectId || c.subjectId === parseInt(subjectId));
+    const filteredConcepts = concepts.filter((concept) =>
+        (concept.subjectId ?? concept.subject_id)?.toString() === subjectId
+    );
+
+    // ── Shuffle helper (Fisher-Yates) ────────────────────────────────────────
+    const shuffleArray = (arr) => {
+        const a = [...arr];
+        for (let i = a.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [a[i], a[j]] = [a[j], a[i]];
+        }
+        return a;
+    };
+
+    // ── Build a large unique option pool per question ────────────────────────
+    const buildOptionPool = (conceptName, subjectName, qIndex) => {
+        const pools = [
+            // Definitional / conceptual
+            `Core abstraction layer of ${conceptName}`,
+            `Encapsulated state model in ${conceptName}`,
+            `Deterministic execution path of ${conceptName}`,
+            `Immutable reference pattern in ${conceptName}`,
+            `Lazy evaluation strategy for ${conceptName}`,
+            `Eager binding model within ${conceptName}`,
+
+            // Algorithmic / complexity
+            `O(log n) traversal via ${conceptName}`,
+            `O(n²) worst-case scenario in ${conceptName}`,
+            `Amortized O(1) insertion using ${conceptName}`,
+            `Linear-time reduction through ${conceptName}`,
+            `Polynomial-bounded variant of ${conceptName}`,
+            `NP-hard reduction from ${conceptName}`,
+
+            // Implementation patterns
+            `Factory-pattern instantiation of ${conceptName}`,
+            `Observer-pattern bridge for ${conceptName}`,
+            `Singleton enforcement within ${conceptName}`,
+            `Decorator-chain extension of ${conceptName}`,
+            `Proxy delegation layer over ${conceptName}`,
+            `Command-pattern abstraction of ${conceptName}`,
+
+            // Failure / edge-case modes
+            `Race condition introduced by ${conceptName}`,
+            `Null-pointer dereference within ${conceptName}`,
+            `Stack-overflow boundary in ${conceptName}`,
+            `Deadlock scenario caused by ${conceptName}`,
+            `Off-by-one error in ${conceptName} loop`,
+            `Integer overflow during ${conceptName} scaling`,
+
+            // Domain / system context
+            `${subjectName} runtime dependency on ${conceptName}`,
+            `Kernel-level integration of ${conceptName}`,
+            `Distributed consensus via ${conceptName}`,
+            `Cache-coherence protocol using ${conceptName}`,
+            `Memory-mapped I/O through ${conceptName}`,
+            `Virtual address translation in ${conceptName}`,
+
+            // Comparison / alternatives
+            `${conceptName} vs. iterative backtracking`,
+            `${conceptName} contrasted with memoisation`,
+            `Greedy heuristic alternative to ${conceptName}`,
+            `Divide-and-conquer analogue of ${conceptName}`,
+            `Dynamic-programming reformulation of ${conceptName}`,
+            `Branch-and-bound replacement for ${conceptName}`,
+
+            // Standards / industry
+            `IEEE 802 compliance layer for ${conceptName}`,
+            `POSIX-standard implementation of ${conceptName}`,
+            `ISO/IEC 9001 conformant ${conceptName} module`,
+            `GDPR-compliant data handling via ${conceptName}`,
+            `RFC-7231 resource model using ${conceptName}`,
+            `OpenAPI 3.0 schema extension of ${conceptName}`,
+
+            // Optimisation / tuning
+            `Vectorised SIMD acceleration of ${conceptName}`,
+            `Branch-prediction-aware ${conceptName} path`,
+            `Cache-line-aligned ${conceptName} buffer`,
+            `Compiler-intrinsic optimisation of ${conceptName}`,
+            `Lock-free concurrent variant of ${conceptName}`,
+            `NUMA-aware allocation for ${conceptName}`,
+
+            // Theoretical / foundational
+            `Turing-complete formulation of ${conceptName}`,
+            `Lambda-calculus reduction of ${conceptName}`,
+            `Monadic composition pattern in ${conceptName}`,
+            `Category-theory functor for ${conceptName}`,
+            `Type-theoretic proof of ${conceptName}`,
+            `Church-encoding representation of ${conceptName}`,
+
+            // Miscellaneous unique distractors
+            `Stateless idempotent endpoint of ${conceptName}`,
+            `Event-sourcing projection through ${conceptName}`,
+            `CQRS write-side handler of ${conceptName}`,
+            `Saga-pattern compensator for ${conceptName}`,
+            `Circuit-breaker fallback in ${conceptName}`,
+            `Backpressure mechanism within ${conceptName}`,
+        ];
+        // Rotate the pool start by question index so each question draws from a different slice
+        const offset = (qIndex * 7) % pools.length;
+        const rotated = [...pools.slice(offset), ...pools.slice(0, offset)];
+        return rotated;
+    };
 
     const handleGenerate = (e) => {
         e.preventDefault();
@@ -46,44 +167,24 @@ export default function QuestionGenerator() {
         setGeneratedQuestions([]);
 
         setTimeout(() => {
-            const subjectName = subjects.find(s => s.id === parseInt(subjectId))?.name || 'Subject';
-            const conceptName = concepts.find(c => c.id === parseInt(conceptId))?.name || 'Concept';
+            const subjectName = subjects.find(s => s.id?.toString() === subjectId)?.name || 'Subject';
+            const conceptName = concepts.find(c => c.id?.toString() === conceptId)?.name || 'Concept';
 
-            // Generate varied questions based on the domain & concept
-            const newQs = Array.from({ length: numQuestions }).map((_, i) => {
-                const questionTypes = [
-                    `What is the primary function of ${conceptName} in a standard ${subjectName} environment?`,
-                    `Identify the major drawback or limitation when implementing ${conceptName}.`,
-                    `Which of the following is a direct prerequisite for understanding ${conceptName}?`,
-                    `How does ${conceptName} optimization impact the overall performance of ${subjectName} systems?`,
-                    `Which alternative methodology is most commonly compared against ${conceptName}?`,
-                    `In the context of ${subjectName}, describe the edge-case failure mode for ${conceptName}.`,
-                    `What is the optimal time/space complexity associated with ${conceptName}?`,
-                    `Which industry standard most heavily relies on ${conceptName}?`,
-                    `Identify the false statement regarding ${conceptName}.`,
-                    `What is the foundational principle underlying ${conceptName}?`
-                ];
-
-                const qText = questionTypes[i % questionTypes.length];
-
-                return {
-                    id: Date.now() + i,
-                    text: qText,
-                    options: [
-                        `${conceptName} Alpha Output`,
-                        `${conceptName} Beta Deviation`,
-                        `${conceptName} Gamma Heuristic`,
-                        `${conceptName} Delta Constant`
-                    ],
-                    correctAnswer: `${conceptName} Alpha Output`,
-                    isEditing: false
-                };
-            });
+            // Generate non-repeating unique questions using the deduplication engine
+            const newQs = generateUniqueQuestions({
+                subject: subjectName,
+                concept: conceptName,
+                numQuestions: parseInt(numQuestions) || 5
+            }).map((q, idx) => ({
+                ...q,
+                id: Date.now() + idx,
+                isEditing: false
+            }));
 
             setGeneratedQuestions(newQs);
             setIsGenerating(false);
-            toast.success(`Generated ${numQuestions} specialized assessments for ${conceptName}`);
-        }, 2000);
+            toast.success(`Generated ${newQs.length} unique, non-repeating assessments for ${conceptName}`);
+        }, 1200);
     };
 
     const toggleEdit = (id) => {
@@ -120,29 +221,42 @@ export default function QuestionGenerator() {
             toast.error('Please specify the deployment window');
             return;
         }
+        if (deployEndTime <= deployStartTime) {
+            toast.error('End time must be later than start time');
+            return;
+        }
 
-        const subjectName = subjects.find(s => s.id === parseInt(subjectId))?.name || 'AI Generated Domain';
+        const subjectName = subjects.find(s => s.id?.toString() === subjectId)?.name || 'AI Generated Domain';
 
-        // Save these questions as an actual test via mockDb so students can see them
-        await mockDb.saveTest({
-            id: Date.now().toString(),
-            name: `AI Assessment: ${subjectName}`,
-            subject: subjectName,
-            date: new Date().toISOString().split('T')[0],
-            time: deployStartTime,
-            endTime: deployEndTime,
-            duration: generatedQuestions.length * 1, // 1 min per question
-            status: 'Upcoming',
-            numQuestions: generatedQuestions.length,
-            isLive: true,
-            questions: generatedQuestions
-        });
+        setIsDeploying(true);
+        try {
+            const now = new Date();
+            const localDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+            await mockDb.saveTest({
+                id: Date.now().toString(),
+                name: `AI Assessment: ${subjectName}`,
+                subject: subjectName,
+                date: localDate,
+                time: deployStartTime,
+                endTime: deployEndTime,
+                duration: generatedQuestions.length,
+                status: 'Upcoming',
+                numQuestions: generatedQuestions.length,
+                isLive: true,
+                questions: generatedQuestions
+            });
 
-        toast.success(`Successfully deployed to live assessments!`);
-        setShowDeployModal(false);
-        setGeneratedQuestions([]);
-        setDeployStartTime('');
-        setDeployEndTime('');
+            toast.success('Assessment deployed successfully!');
+            setShowDeployModal(false);
+            setGeneratedQuestions([]);
+            setDeployStartTime('');
+            setDeployEndTime('');
+        } catch (error) {
+            console.error('Assessment deployment failed:', error);
+            toast.error(error.message || 'Could not deploy assessment. Please try again.');
+        } finally {
+            setIsDeploying(false);
+        }
     };
 
     return (
@@ -379,11 +493,11 @@ export default function QuestionGenerator() {
                                     </div>
 
                                     <div className="flex justify-end gap-3 pt-6 border-t border-gray-100">
-                                        <button type="button" onClick={() => setShowDeployModal(false)} className="px-6 py-2.5 text-xs font-bold text-gray-500 hover:text-gray-900 transition-colors">
+                                        <button type="button" onClick={() => setShowDeployModal(false)} disabled={isDeploying} className="px-6 py-2.5 text-xs font-bold text-gray-500 hover:text-gray-900 transition-colors disabled:opacity-50">
                                             Cancel
                                         </button>
-                                        <button type="submit" className="apple-btn apple-btn-primary !px-8 !py-2.5 !text-xs !bg-indigo-500 hover:!bg-indigo-600 shadow-xl shadow-indigo-500/20">
-                                            Confirm Deployment
+                                        <button type="submit" disabled={isDeploying} className="apple-btn apple-btn-primary !px-8 !py-2.5 !text-xs !bg-indigo-500 hover:!bg-indigo-600 shadow-xl shadow-indigo-500/20 disabled:opacity-60">
+                                            {isDeploying ? 'Deploying...' : 'Confirm Deployment'}
                                         </button>
                                     </div>
                                 </form>

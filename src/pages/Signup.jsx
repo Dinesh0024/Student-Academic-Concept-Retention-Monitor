@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { HiOutlineMail, HiOutlineLockClosed, HiOutlineUser, HiOutlineIdentification, HiOutlineLibrary, HiOutlineAcademicCap, HiChevronLeft, HiArrowRight } from 'react-icons/hi';
 import PageTransition from '../components/PageTransition';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
+
+const MotionDiv = motion.div;
 
 export default function Signup() {
     const navigate = useNavigate();
@@ -115,6 +117,29 @@ export default function Signup() {
         }
     };
 
+    if (roleParam === 'student') {
+        return (
+            <PageTransition>
+                <div className="min-h-screen bg-[var(--color-surface-secondary)] flex flex-col items-center justify-center p-6">
+                    <Link to="/" className="fixed top-8 left-8 flex items-center gap-2 text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] transition-colors group">
+                        <HiChevronLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
+                        <span className="font-medium">Back</span>
+                    </Link>
+                    <div className="premium-card w-full max-w-[500px] p-8 text-center">
+                        <HiOutlineAcademicCap className="w-12 h-12 text-[var(--color-accent)] mx-auto mb-5" />
+                        <h1 className="text-2xl font-bold tracking-tight mb-3">Student access is provided by faculty</h1>
+                        <p className="text-[var(--color-text-secondary)] mb-7">
+                            Ask your faculty member to create your student account. They will provide the email and temporary password you need to sign in.
+                        </p>
+                        <Link to="/login?role=student" className="apple-btn apple-btn-primary inline-flex items-center justify-center gap-2">
+                            Go to Student Login <HiArrowRight className="w-4 h-4" />
+                        </Link>
+                    </div>
+                </div>
+            </PageTransition>
+        );
+    }
+
     return (
         <PageTransition>
             <div className="min-h-screen bg-[var(--color-surface-secondary)] flex flex-col items-center justify-center p-6 py-12">
@@ -123,7 +148,7 @@ export default function Signup() {
                     <span className="font-medium">Back</span>
                 </Link>
 
-                <motion.div
+                <MotionDiv
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     className="w-full max-w-[500px]"
@@ -276,7 +301,7 @@ export default function Signup() {
                             Already have an account? <Link to={`/${roleParam}/login`} className="text-[var(--color-accent)] font-semibold hover:underline">Sign in</Link>
                         </div>
                     </div>
-                </motion.div>
+                </MotionDiv>
             </div>
         </PageTransition>
     );

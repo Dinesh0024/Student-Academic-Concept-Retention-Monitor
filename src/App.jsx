@@ -1,4 +1,3 @@
-import { useState, useEffect } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from 'react-hot-toast';
 import { ThemeProvider } from './context/ThemeContext';
@@ -11,7 +10,6 @@ import Signup from './pages/Signup';
 import ForgotPassword from './pages/ForgotPassword';
 import Dashboard from './pages/Dashboard';
 import Students from './pages/Students';
-import ConceptTracker from './pages/ConceptTracker';
 import QuestionGenerator from './pages/QuestionGenerator';
 import TestScheduler from './pages/TestScheduler';
 import Reports from './pages/Reports';
@@ -21,6 +19,7 @@ import Attendance from './pages/Attendance';
 import StudentDashboard from './pages/StudentDashboard';
 import StudentFeedback from './pages/StudentFeedback';
 import LiveAssessments from './pages/LiveAssessments';
+import DoubtClarifier from './pages/DoubtClarifier';
 import TestInterface from './pages/TestInterface';
 import AdminDashboard from './pages/AdminDashboard';
 
@@ -30,8 +29,7 @@ function ProtectedRoute({ children, allowedRoles }) {
   if (loading) return <div className="min-h-screen flex items-center justify-center bg-white text-gray-400 font-bold uppercase tracking-widest text-xs">Authenticating...</div>;
 
   if (!isAuthenticated) {
-    const roleParam = allowedRoles && allowedRoles.length > 0 ? allowedRoles[0] : 'student';
-    return <Navigate to={`/${roleParam}/login`} replace />;
+    return <Navigate to="/" replace />;
   }
 
   if (allowedRoles && user && !allowedRoles.includes(user.role)) {
@@ -62,7 +60,8 @@ function AppRoutes() {
       <DashboardLayout>
         <Routes>
           <Route index element={<Dashboard />} />
-          <Route path="concepts" element={<ConceptTracker />} />
+          <Route path="students" element={<Students />} />
+          <Route path="doubts" element={<DoubtClarifier />} />
           <Route path="questions" element={<QuestionGenerator />} />
           <Route path="attendance" element={<Attendance />} />
           <Route path="settings" element={<Settings />} />
@@ -76,9 +75,8 @@ function AppRoutes() {
         <Routes>
           <Route index element={<StudentDashboard />} />
           <Route path="assessments" element={<LiveAssessments />} />
-          <Route path="concepts" element={<ConceptTracker />} />
+          <Route path="doubts" element={<DoubtClarifier />} />
           <Route path="feedback" element={<StudentFeedback />} />
-          <Route path="test" element={<TestInterface />} />
           <Route path="settings" element={<Settings />} />
           <Route path="*" element={<Navigate to="/student" replace />} />
         </Routes>
@@ -106,15 +104,21 @@ export default function App() {
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<HomeRedirect />} />
-            <Route path="/faculty/login" element={<Login />} />
-            <Route path="/student/login" element={<Login />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/faculty/login" element={<Navigate to="/login?role=faculty" replace />} />
+            <Route path="/student/login" element={<Navigate to="/login?role=student" replace />} />
             <Route path="/faculty/signup" element={<Signup />} />
             <Route path="/student/signup" element={<Signup />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
 
-            <Route path="/faculty/*" element={
-              <ProtectedRoute allowedRoles={['faculty']}>
-                <AppRoutes />
+              <Route path="/student/test" element={
+                <ProtectedRoute allowedRoles={['student']}>
+                  <TestInterface />
+                </ProtectedRoute>
+              } />
+              <Route path="/faculty/*" element={
+                <ProtectedRoute allowedRoles={['faculty']}>
+                  <AppRoutes />
               </ProtectedRoute>
             } />
             <Route path="/student/*" element={

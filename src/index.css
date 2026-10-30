@@ -261,3 +261,158 @@
 .theme-transition {
   transition: background-color 0.4s ease, color 0.4s ease, border-color 0.4s ease, box-shadow 0.4s ease;
 }
+
+/* ===== DASHBOARD REDESIGN ===== */
+
+/* Welcome Banner */
+.welcome-banner {
+  border-radius: 24px;
+  padding: 2rem 2.5rem;
+  position: relative;
+  overflow: hidden;
+  min-height: 180px;
+  display: flex;
+  align-items: center;
+}
+
+.welcome-banner-faculty {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.welcome-banner-student {
+  background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 50%, #2563eb 100%);
+}
+
+.welcome-banner::before {
+  content: '';
+  position: absolute;
+  top: -40%;
+  right: -10%;
+  width: 300px;
+  height: 300px;
+  background: rgba(255,255,255,0.08);
+  border-radius: 50%;
+}
+
+.welcome-banner::after {
+  content: '';
+  position: absolute;
+  bottom: -60%;
+  right: 15%;
+  width: 200px;
+  height: 200px;
+  background: rgba(255,255,255,0.05);
+  border-radius: 50%;
+}
+
+/* Vibrant Dash Cards */
+.dash-card-coral {
+  --card-accent: #ff6b6b;
+  --card-accent-light: #fff0f0;
+  --card-accent-glow: rgba(255, 107, 107, 0.15);
+}
+
+.dash-card-cyan {
+  --card-accent: #22d3ee;
+  --card-accent-light: #ecfeff;
+  --card-accent-glow: rgba(34, 211, 238, 0.15);
+}
+
+.dash-card-violet {
+  --card-accent: #8b5cf6;
+  --card-accent-light: #f5f3ff;
+  --card-accent-glow: rgba(139, 92, 246, 0.15);
+}
+
+.dash-card-emerald {
+  --card-accent: #10b981;
+  --card-accent-light: #ecfdf5;
+  --card-accent-glow: rgba(16, 185, 129, 0.15);
+}
+
+.dark .dash-card-coral {
+  --card-accent-light: rgba(255, 107, 107, 0.1);
+}
+
+.dark .dash-card-cyan {
+  --card-accent-light: rgba(34, 211, 238, 0.1);
+}
+
+.dark .dash-card-violet {
+  --card-accent-light: rgba(139, 92, 246, 0.1);
+}
+
+.dark .dash-card-emerald {
+  --card-accent-light: rgba(16, 185, 129, 0.1);
+}
+
+/* Activity Item */
+.activity-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 14px;
+  transition: background-color 0.2s ease;
+  cursor: default;
+}
+
+.activity-item:hover {
+  background-color: var(--color-surface-tertiary-hex);
+}
+
+/* Wide Sidebar */
+.sidebar-wide {
+  width: 240px;
+  background: linear-gradient(180deg, #1e1b4b 0%, #312e81 50%, #1e1b4b 100%);
+}
+
+.dark .sidebar-wide {
+  background: linear-gradient(180deg, #0c0a1d 0%, #1a1744 50%, #0c0a1d 100%);
+}
+
+.sidebar-wide .sidebar-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  border-radius: 12px;
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 13px;
+  font-weight: 600;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+}
+
+.sidebar-wide .sidebar-nav-item:hover {
+  color: rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.sidebar-wide .sidebar-nav-item.active {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.15);
+  font-weight: 700;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.sidebar-wide .sidebar-nav-item.active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 20px;
+  background: #818cf8;
+  border-radius: 0 4px 4px 0;
+}
+
+/* Right Panel */
+.right-panel-card {
+  background: var(--color-surface-hex);
+  border-radius: 20px;
+  border: 1px solid var(--color-border-hex);
+  padding: 1.25rem;
+  box-shadow: var(--shadow-premium);
+}

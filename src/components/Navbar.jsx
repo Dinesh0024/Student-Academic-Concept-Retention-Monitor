@@ -1,17 +1,21 @@
 import { useState, useRef, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { HiOutlineBell, HiOutlineMenu, HiOutlineSearch, HiOutlineUserCircle, HiOutlineChevronDown, HiOutlineCog, HiOutlineSun, HiOutlineMoon, HiOutlineLogout } from 'react-icons/hi';
+import { HiOutlineBell, HiOutlineMenu, HiOutlineSearch, HiOutlineUserCircle, HiOutlineChevronDown, HiOutlineCog, HiOutlineSun, HiOutlineMoon, HiOutlineLogout, HiOutlineAcademicCap, HiOutlineUserGroup } from 'react-icons/hi';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
+import mockDb from '../utils/apiDb';
+import toast from 'react-hot-toast';
 
 export default function Navbar({ onMenuToggle }) {
     const { user, logout, isAuthenticated } = useAuth();
     const { dark, toggle } = useTheme();
+    const navigate = useNavigate();
     const [profileOpen, setProfileOpen] = useState(false);
     const [notifOpen, setNotifOpen] = useState(false);
     const profileRef = useRef(null);
     const notifRef = useRef(null);
+    const unreadTestIdsRef = useRef(new Set());
     const location = useLocation();
     const isLanding = location.pathname === '/';
 
@@ -24,13 +28,97 @@ export default function Navbar({ onMenuToggle }) {
         return () => document.removeEventListener('mousedown', handler);
     }, []);
 
-    const notifications = [
-        { id: 1, text: '3 candidates identified as at-risk', time: '2h ago', unread: true },
-        { id: 2, text: 'Consolidated retention dataset ready', time: '5h ago', unread: true },
+    const facultyNotifications = [
+        { id: 'faculty-at-risk', text: '3 students identified at-risk in CS301 Algorithms', time: '2h ago', link: '/faculty', unread: true },
+        { id: 'faculty-retention', text: 'Class retention dataset updated for Data Structures', time: '5h ago', link: '/faculty', unread: true },
     ];
 
+    const [notificationsList, setNotificationsList] = useState([]);
+
+    useEffect(() => {
+        if (user?.role !== 'student') {
+            setNotificationsList(facultyNotifications);
+            return;
+        }
+
+        let cancelled = false;
+        const storageKey = `seen_test_notifications_${user.email}`;
+        const loadTestNotifications = async () => {
+            try {
+                const tests = await mockDb.getTests();
+                if (cancelled) return;
+
+                let seenIds = [];
+                try {
+                    seenIds = JSON.parse(localStorage.getItem(storageKey) || '[]');
+                } catch {
+                    seenIds = [];
+                }
+
+                const newTests = tests.filter((test) => !seenIds.includes(String(test.id)));
+                if (newTests.length > 0) {
+                    newTests.forEach((test) => unreadTestIdsRef.current.add(String(test.id)));
+                    const nextSeenIds = [...new Set([...seenIds, ...tests.map((test) => String(test.id))])];
+                    localStorage.setItem(storageKey, JSON.stringify(nextSeenIds));
+                    const newestTest = newTests[newTests.length - 1];
+                    toast(
+                        <div>
+                            <p className="font-bold text-sm">New test deployed: {newestTest.name}</p>
+                            <p className="text-xs text-gray-500 mt-1">
+                                {newestTest.subject} · {newestTest.date} at {newestTest.time}
+                            </p>
+                        </div>,
+                        { duration: 8000 }
+                    );
+                }
+
+                const testNotifications = tests
+                    .filter((test) => test.id)
+                    .slice()
+                    .sort((a, b) => String(b.created_at || b.id).localeCompare(String(a.created_at || a.id)))
+                    .map((test) => ({
+                        id: `test-${test.id}`,
+                        text: `New test deployed: ${test.name}`,
+                        time: test.date && test.time ? `${test.date} at ${test.time}` : 'Recently deployed',
+                        link: '/student/test',
+                        state: { testConfig: test },
+                        testId: String(test.id),
+                        unread: unreadTestIdsRef.current.has(String(test.id))
+                    }));
+                setNotificationsList(testNotifications);
+            } catch (error) {
+                console.error('Unable to load test notifications:', error);
+            }
+        };
+
+        loadTestNotifications();
+        const interval = setInterval(loadTestNotifications, 5000);
+        return () => {
+            cancelled = true;
+            clearInterval(interval);
+        };
+    }, [user?.role, user?.email]);
+
+    const handleNotifClick = async (event, notif) => {
+        if (!notif.state?.testConfig) return;
+        event.preventDefault();
+        unreadTestIdsRef.current.delete(String(notif.id).replace('test-', ''));
+        setNotificationsList(prev => prev.map(n => n.id === notif.id ? { ...n, unread: false } : n));
+        setNotifOpen(false);
+
+        try {
+            const latestTests = await mockDb.getTests();
+            const deployedTest = latestTests.find((test) => String(test.id) === String(notif.testId)) || notif.state.testConfig;
+            sessionStorage.setItem('active_deployed_test', JSON.stringify(deployedTest));
+            navigate('/student/test', { state: { testConfig: deployedTest } });
+        } catch (error) {
+            console.error('Unable to open deployed test notification:', error);
+            toast.error('Could not open the test. Please try again.');
+        }
+    };
+
     return (
-        <nav className={`fixed top-0 left-0 right-0 z-40 bg-surface/80 dark:bg-surface-secondary/80 backdrop-blur-2xl border-b border-border/10 h-16 transition-all duration-300 ${isLanding ? '' : 'md:pl-[72px]'}`}>
+        <nav className={`fixed top-0 left-0 right-0 z-40 bg-surface/80 dark:bg-surface-secondary/80 backdrop-blur-2xl border-b border-border/10 h-16 transition-all duration-300 ${isLanding ? '' : 'md:pl-[240px]'}`}>
             <div className={`flex items-center justify-between h-full px-6 ${isLanding ? 'max-w-7xl mx-auto' : ''}`}>
                 <div className="flex items-center gap-4">
                     {!isLanding && (
@@ -41,10 +129,10 @@ export default function Navbar({ onMenuToggle }) {
                     {isLanding && (
                         <Link to="/" className="flex items-center gap-2.5 group">
                             <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-accent text-white shadow-lg shadow-accent/20 transition-transform group-hover:scale-105">
-                                <span className="font-black text-sm">R</span>
+                                <span className="font-black text-sm">A</span>
                             </div>
                             <span className="font-black text-xl tracking-tighter text-text-primary">
-                                Retain
+                                AcademiQ
                                 <span className="text-accent">.</span>
                             </span>
                             {!isLanding && (
@@ -88,7 +176,7 @@ export default function Navbar({ onMenuToggle }) {
                                     className={`relative w-9 h-9 rounded-xl flex items-center justify-center transition-all ${notifOpen ? 'bg-accent/10 text-accent' : 'text-text-tertiary hover:bg-accent/10 hover:text-accent'}`}
                                 >
                                     <HiOutlineBell className="w-5 h-5" />
-                                    {notifications.some(n => n.unread) && (
+                                    {notificationsList.some(n => n.unread) && (
                                         <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-accent rounded-full ring-2 ring-surface" />
                                     )}
                                 </button>
@@ -99,18 +187,33 @@ export default function Navbar({ onMenuToggle }) {
                                             animate={{ opacity: 1, y: 0, scale: 1 }}
                                             exit={{ opacity: 0, y: 8, scale: 0.96 }}
                                             transition={{ duration: 0.15 }}
-                                            className="absolute right-0 top-12 w-80 premium-card p-0 overflow-hidden"
+                                            className="absolute right-0 top-12 w-80 premium-card p-0 overflow-hidden shadow-2xl"
                                         >
-                                            <div className="px-4 py-3 border-b border-border/5 flex justify-between items-center">
-                                                <h4 className="text-xs font-bold text-text-primary">Notifications</h4>
-                                                <span className="text-[10px] font-bold bg-accent/10 text-accent px-2 py-0.5 rounded-full">2 new</span>
+                                            <div className="px-4 py-3 border-b border-border/5 flex justify-between items-center bg-surface-tertiary/40">
+                                                <h4 className="text-xs font-bold text-text-primary uppercase tracking-wider">Notifications</h4>
+                                                {notificationsList.filter(n => n.unread).length > 0 && (
+                                                    <span className="text-[10px] font-black bg-accent/10 text-accent px-2 py-0.5 rounded-full uppercase tracking-widest">
+                                                        {notificationsList.filter(n => n.unread).length} new
+                                                    </span>
+                                                )}
                                             </div>
                                             <div className="max-h-72 overflow-y-auto">
-                                                {notifications.map(n => (
-                                                    <div key={n.id} className="px-4 py-3 border-b border-border/5 hover:bg-accent/5 transition-colors cursor-pointer group">
-                                                        <p className="text-[13px] font-medium text-text-secondary leading-snug group-hover:text-text-primary transition-colors">{n.text}</p>
-                                                        <p className="text-[11px] text-text-tertiary mt-1">{n.time}</p>
-                                                    </div>
+                                                {notificationsList.map(n => (
+                                                    <Link
+                                                        key={n.id}
+                                                        to={n.link}
+                                                        state={n.state}
+                                                        onClick={(event) => handleNotifClick(event, n)}
+                                                        className={`block px-4 py-3 border-b border-border/5 hover:bg-accent/5 transition-colors cursor-pointer group ${n.unread ? 'bg-accent/5' : ''}`}
+                                                    >
+                                                        <div className="flex items-start gap-2">
+                                                            {n.unread && <span className="w-1.5 h-1.5 rounded-full bg-accent mt-1.5 flex-shrink-0" />}
+                                                            <div>
+                                                                <p className="text-[12px] font-semibold text-text-secondary leading-snug group-hover:text-text-primary transition-colors">{n.text}</p>
+                                                                <p className="text-[10px] text-text-tertiary mt-1 font-medium">{n.time}</p>
+                                                            </div>
+                                                        </div>
+                                                    </Link>
                                                 ))}
                                             </div>
                                         </motion.div>
@@ -150,7 +253,7 @@ export default function Navbar({ onMenuToggle }) {
                                                 <HiOutlineCog className="w-4 h-4" />
                                                 Settings
                                             </Link>
-                                            <button onClick={() => { logout(); setProfileOpen(false); }} className="w-full flex items-center gap-2.5 px-3 py-2 text-[13px] font-medium text-text-secondary rounded-lg hover:bg-red-500/5 hover:text-red-500 transition-all text-left">
+                                            <button onClick={() => { logout(); setProfileOpen(false); navigate('/'); }} className="w-full flex items-center gap-2.5 px-3 py-2 text-[13px] font-medium text-text-secondary rounded-lg hover:bg-red-500/5 hover:text-red-500 transition-all text-left">
                                                 <HiOutlineLogout className="w-4 h-4" />
                                                 Sign Out
                                             </button>
@@ -160,9 +263,21 @@ export default function Navbar({ onMenuToggle }) {
                             </div>
                         </>
                     ) : (
-                        <div className="flex items-center gap-3">
-                            <Link to="/student/login" className="px-4 py-2 text-[13px] font-semibold text-text-secondary hover:text-accent transition-colors">Sign In</Link>
-                            <Link to="/student/signup" className="apple-btn apple-btn-primary !py-2 !px-5 !text-[12px] !font-bold">Get Started</Link>
+                        <div className="flex items-center gap-2">
+                            <Link 
+                                to="/login" 
+                                className="px-3.5 py-1.5 rounded-xl border border-accent/30 bg-accent/10 text-[12px] font-bold text-accent hover:bg-accent hover:text-white transition-all flex items-center gap-1.5 shadow-sm"
+                                title="Login to the platform"
+                            >
+                                <HiOutlineUserGroup className="w-4 h-4" />
+                                <span>Login</span>
+                            </Link>
+                            <Link 
+                                to="/student/signup" 
+                                className="hidden sm:inline-flex apple-btn apple-btn-primary !py-1.5 !px-3.5 !text-[12px] !font-bold"
+                            >
+                                Get Started
+                            </Link>
                         </div>
                     )}
                 </div>

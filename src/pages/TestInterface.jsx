@@ -1,40 +1,44 @@
-import { useState, useEffect } from 'react';
+import mockDb from '../utils/apiDb';
+import { useState, useEffect, useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { HiOutlineClock, HiOutlineExclamationCircle, HiOutlineCheckCircle, HiOutlineLightBulb } from 'react-icons/hi';
 import PageTransition from '../components/PageTransition';
 import ProgressBar from '../components/ProgressBar';
 import { useAuth } from '../context/AuthContext';
-import mockDb from '../utils/mockDb';
 import toast from 'react-hot-toast';
-import { QUESTION_BANK } from '../utils/questionBank';
+import { generateUniqueQuestions } from '../utils/questionGeneratorEngine';
+import ShadowGradingModal from '../components/ShadowGradingModal';
+import { generateShadowGradingAnalysis } from '../utils/analytics';
+
+const MotionDiv = motion.div;
+const isValidClockTime = (time) => typeof time === 'string' && /^([01]\d|2[0-3]):[0-5]\d$/.test(time);
+
+const formatClockTime = (time) => {
+    if (!isValidClockTime(time)) return '';
+    const [hours, minutes] = time.split(':').map(Number);
+    const period = hours >= 12 ? 'PM' : 'AM';
+    const displayHours = hours % 12 || 12;
+    return `${displayHours}:${String(minutes).padStart(2, '0')} ${period}`;
+};
+
 export default function TestInterface() {
     const navigate = useNavigate();
     const location = useLocation();
     const { user } = useAuth();
 
-    // Retrieve the assigned test config if the user clicked "Launch Test" from dashboard
-    const testConfig = location.state?.testConfig;
-
-    if (!testConfig) {
-        return (
-            <PageTransition>
-                <div className="min-h-[80vh] flex flex-col items-center justify-center p-6 text-center">
-                    <div className="w-20 h-20 bg-gray-50 text-gray-400 rounded-3xl flex items-center justify-center mx-auto mb-6">
-                        <HiOutlineExclamationCircle className="w-10 h-10" />
-                    </div>
-                    <h2 className="text-2xl font-bold text-gray-900 mb-2">No Assessment Selected</h2>
-                    <p className="text-gray-500 mb-8 max-w-sm">Please return to your Learning Path and select a specific pending or live assessment to initialize.</p>
-                    <button onClick={() => navigate('/student')} className="apple-btn apple-btn-primary !px-8 !py-3">
-                        Return to Command Center
-                    </button>
-                </div>
-            </PageTransition>
-        );
+    // Router state is preferred; storage keeps notification launches working after reloads.
+    let storedTestConfig = null;
+    try {
+        storedTestConfig = JSON.parse(sessionStorage.getItem('active_deployed_test') || 'null');
+    } catch {
+        storedTestConfig = null;
     }
+    const testConfig = location.state?.testConfig || storedTestConfig;
 
     // Dynamically generate the test based on config
-    const [realTest, setRealTest] = useState(() => {
+    const [realTest] = useState(() => {
+        if (!testConfig) return null;
 
         let finalQuestions = [];
 
@@ -47,17 +51,17 @@ export default function TestInterface() {
                 // Ensure field mappings match TestInterface expectations (correctAnswer vs answer)
                 answer: q.correctAnswer || q.answer
             }));
-        } else if (testConfig.isLive && QUESTION_BANK[testConfig.subject]) {
-            // Use the curated hardcoded question bank for live assessments
-            finalQuestions = QUESTION_BANK[testConfig.subject];
         } else {
-            // Fallback to generating mock generic questions
-            const qCount = Math.min(testConfig.numQuestions || 5, 20); // Cap at 20 for UI sanity
-            finalQuestions = Array.from({ length: qCount }).map((_, i) => ({
-                id: i + 1,
-                text: `(Generated) Analyze the core principle underlying ${testConfig.subject} mechanism #${i + 1}?`,
-                options: ['Option Alpha', 'Option Beta', 'Option Gamma', 'Option Delta'],
-                answer: 'Option Alpha' // Simplify mock answering
+            // Generate non-repeating dynamic questions with anti-repeat deduplication
+            const qCount = Math.min(testConfig.numQuestions || 10, 50);
+            finalQuestions = generateUniqueQuestions({
+                subject: testConfig.subject,
+                numQuestions: qCount
+            }).map(q => ({
+                id: q.id,
+                text: q.text,
+                options: q.options,
+                answer: q.answer || q.correctAnswer
             }));
         }
 
@@ -77,16 +81,23 @@ export default function TestInterface() {
     const [answers, setAnswers] = useState({});
     const [submitted, setSubmitted] = useState(false);
     const [score, setScore] = useState(null);
+    const [correctAnswers, setCorrectAnswers] = useState(0);
     const [aiFeedback, setAiFeedback] = useState(null);
+    const [resultId, setResultId] = useState(null);
+    const [studentFeedback, setStudentFeedback] = useState('');
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isSavingFeedback, setIsSavingFeedback] = useState(false);
+    const [timeLeft, setTimeLeft] = useState(() => realTest ? realTest.duration * 60 : 0);
+    const [missedReason, setMissedReason] = useState('');
+    const [showShadowModal, setShowShadowModal] = useState(false);
 
     // Calculate time window enforcement
     const checkTimeWindow = () => {
-        if (!realTest.time || !realTest.endTime) return 'within';
+        if (!realTest || !isValidClockTime(realTest.time) || !isValidClockTime(realTest.endTime)) return 'within';
         const now = new Date();
         const currentMins = now.getHours() * 60 + now.getMinutes();
 
         const parseMins = (timeStr) => {
-            if (!timeStr) return 0;
             const [h, m] = timeStr.split(':').map(Number);
             return h * 60 + m;
         };
@@ -100,14 +111,9 @@ export default function TestInterface() {
     };
 
     const windowStatus = checkTimeWindow();
-    const [timeLeft, setTimeLeft] = useState(realTest.duration * 60);
-    const [missedReason, setMissedReason] = useState('');
-    const [lateReason, setLateReason] = useState('');
-    const [reasonConfirmed, setReasonConfirmed] = useState(false);
-
 
     const handleMissedSubmit = async () => {
-        if (!user) return;
+        if (!user || !realTest) return;
         await mockDb.saveResult({
             testId: realTest.id,
             testName: realTest.title,
@@ -123,18 +129,97 @@ export default function TestInterface() {
         navigate('/student');
     };
 
+    const handleSubmit = useCallback(async () => {
+        if (!realTest || !user || isSubmitting || submitted) return;
+        setIsSubmitting(true);
+        try {
+            let correct = 0;
+            realTest.questions.forEach(q => {
+                if (answers[q.id] === q.answer) correct++;
+            });
+            const finalScore = Math.round((correct / realTest.questions.length) * 100);
+
+            const drawbacks = finalScore < 100
+                ? `AI identified conceptual gaps in ${realTest.subject} fundamentals during complex reasoning tasks.`
+                : 'No conceptual gaps detected. Mastery confirmed.';
+
+            const solutions = finalScore < 100
+                ? 'AI Recommendation: Review primary source materials and complete secondary practice modules for weak points.'
+                : 'Maintain current velocity and exploration.';
+
+            const savedResult = await mockDb.saveResult({
+                testId: realTest.id,
+                testName: realTest.title,
+                studentName: user.name,
+                studentEmail: user.email,
+                score: finalScore,
+                aiDrawbacks: drawbacks,
+                aiSolutions: solutions
+            });
+
+            setCorrectAnswers(correct);
+            setScore(finalScore);
+            setAiFeedback({ drawbacks, solutions });
+            setResultId(savedResult.id);
+            setSubmitted(true);
+        } catch (error) {
+            console.error('Assessment submission failed:', error);
+            toast.error(error.message || 'Could not submit the assessment. Please try again.');
+        } finally {
+            setIsSubmitting(false);
+        }
+    }, [answers, isSubmitting, realTest, submitted, user]);
+
+    const handleFeedbackAndExit = async (event) => {
+        event.preventDefault();
+        const wordCount = studentFeedback.trim().split(/\s+/).filter(Boolean).length;
+        if (!resultId || wordCount < 4) {
+            toast.error('Please enter at least four words of feedback.');
+            return;
+        }
+
+        setIsSavingFeedback(true);
+        try {
+            await mockDb.updateStudentTestFeedback(resultId, studentFeedback.trim());
+            toast.success('Feedback saved. Returning to your dashboard.');
+            navigate('/student', { replace: true });
+        } catch (error) {
+            console.error('Assessment feedback could not be saved:', error);
+            toast.error(error.message || 'Could not save your feedback. Please try again.');
+        } finally {
+            setIsSavingFeedback(false);
+        }
+    };
+
     useEffect(() => {
         let timer;
         if (started && !submitted && timeLeft > 0) {
             timer = setInterval(() => setTimeLeft(prev => prev - 1), 1000);
-        } else if (timeLeft === 0 && !submitted) {
+        } else if (timeLeft === 0 && started && !submitted) {
             handleSubmit();
             toast('Window timeout: Auto-submission initialized.', { icon: '⏱️' });
         }
         return () => clearInterval(timer);
-    }, [started, submitted, timeLeft]);
+    }, [started, submitted, timeLeft, handleSubmit]);
 
-    const formatTime = (seconds) => {
+    if (!testConfig || !realTest) {
+        return (
+            <PageTransition>
+                <div className="min-h-[80vh] flex flex-col items-center justify-center p-6 text-center">
+                    <div className="w-20 h-20 bg-gray-50 text-gray-400 rounded-3xl flex items-center justify-center mx-auto mb-6">
+                        <HiOutlineExclamationCircle className="w-10 h-10" />
+                    </div>
+                    <h2 className="text-2xl font-bold text-gray-900 mb-2">No Assessment Selected</h2>
+                    <p className="text-gray-500 mb-8 max-w-sm">Please return to your Learning Path and select a specific pending or live assessment to initialize.</p>
+                    <button onClick={() => navigate('/student')} className="apple-btn apple-btn-primary !px-8 !py-3">
+                        Return to Command Center
+                    </button>
+                </div>
+            </PageTransition>
+        );
+    }
+
+    const formatRemainingTime = (seconds) => {
         const m = Math.floor(seconds / 60);
         const s = seconds % 60;
         return `${m}:${s < 10 ? '0' : ''}${s}`;
@@ -144,43 +229,9 @@ export default function TestInterface() {
         setAnswers({ ...answers, [qId]: option });
     };
 
-    const handleSubmit = async () => {
-        let correct = 0;
-        realTest.questions.forEach(q => {
-            if (answers[q.id] === q.answer) correct++;
-        });
-        const finalScore = Math.round((correct / realTest.questions.length) * 100);
-        setScore(finalScore);
-
-        // Generate AI insights
-        const drawbacks = finalScore < 100
-            ? `AI identified conceptual gaps in ${realTest.subject} fundamentals during complex reasoning tasks.`
-            : 'No conceptual gaps detected. Mastery confirmed.';
-
-        const solutions = finalScore < 100
-            ? 'AI Recommendation: Review primary source materials and complete secondary practice modules for weak points.'
-            : 'Maintain current velocity and exploration.';
-
-        setAiFeedback({ drawbacks, solutions });
-
-        // Save result
-        if (user) {
-            await mockDb.saveResult({
-                testId: realTest.id,
-                testName: realTest.title,
-                studentName: user.name,
-                studentEmail: user.email,
-                score: finalScore,
-                aiDrawbacks: drawbacks,
-                aiSolutions: solutions,
-                lateReason: lateReason
-            });
-        }
-
-        setSubmitted(true);
-    };
-
     if (submitted) {
+        const shadowData = generateShadowGradingAnalysis(realTest.questions, answers);
+
         return (
             <PageTransition>
                 <div className="min-h-[80vh] flex items-center justify-center p-6">
@@ -192,44 +243,66 @@ export default function TestInterface() {
                         <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-10">Assessment data successfully uploaded</p>
 
                         <div className="bg-gray-50 rounded-3xl p-8 mb-6 border border-gray-100">
-                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Retention Index</p>
+                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Your Score</p>
                             <h3 className={`text-6xl font-black ${score >= 70 ? 'text-emerald-500' : 'text-amber-500'} tracking-tighter`}>
-                                {score}%
+                                {correctAnswers} <span className="text-3xl text-gray-400">/ {realTest.questions.length}</span>
                             </h3>
-                            <div className="w-full h-1.5 bg-gray-200 rounded-full mt-6 overflow-hidden">
-                                <motion.div
-                                    initial={{ width: 0 }}
-                                    animate={{ width: `${score}%` }}
-                                    className={`h-full ${score >= 70 ? 'bg-emerald-500' : 'bg-amber-500'}`}
-                                />
-                            </div>
-                            <p className="text-xs font-bold text-gray-500 mt-6 leading-relaxed">
-                                {score >= 70 ? 'Optimal mastery detected. Cognitive architecture is stable.' : 'Sub-optimal retention. Concept reinforcement is highly recommended.'}
-                            </p>
+                            <p className="text-xs font-bold text-gray-500 mt-3">Correct answers out of total questions</p>
                         </div>
 
-                        {/* AI Insights Panel */}
-                        <div className="bg-blue-50/50 rounded-3xl p-6 mb-10 border border-blue-100/50 text-left">
-                            <div className="flex items-center gap-2 mb-4">
+                        <div className="bg-blue-50/50 rounded-3xl p-6 mb-6 border border-blue-100/50 text-left">
+                            <div className="flex items-center gap-2 mb-3">
                                 <HiOutlineLightBulb className="w-5 h-5 text-blue-500" />
-                                <h4 className="text-sm font-black text-blue-900 uppercase tracking-widest">AI Performance Diagnostics</h4>
+                                <h4 className="text-sm font-black text-blue-900 uppercase tracking-widest">Feedback</h4>
                             </div>
-                            <div className="space-y-4">
-                                <div>
-                                    <p className="text-[10px] font-bold text-blue-500 uppercase tracking-widest mb-1">Identified Drawbacks</p>
-                                    <p className="text-xs font-medium text-blue-800 leading-relaxed">{aiFeedback.drawbacks}</p>
-                                </div>
-                                <div className="h-px w-full bg-blue-100/50"></div>
-                                <div>
-                                    <p className="text-[10px] font-bold text-emerald-500 uppercase tracking-widest mb-1">AI Solution Route</p>
-                                    <p className="text-xs font-medium text-emerald-700 leading-relaxed">{aiFeedback.solutions}</p>
-                                </div>
-                            </div>
+                            <p className="text-xs font-medium text-blue-800 leading-relaxed">{aiFeedback.drawbacks}</p>
+                            <p className="text-xs font-medium text-emerald-700 leading-relaxed mt-3">{aiFeedback.solutions}</p>
                         </div>
 
-                        <button onClick={() => navigate('/student')} className="apple-btn apple-btn-primary w-full !py-4 !text-xs !font-black !uppercase !tracking-widest">
-                            Return to Command Center
-                        </button>
+                        <form onSubmit={handleFeedbackAndExit} className="bg-gray-50 rounded-3xl p-6 mb-6 border border-gray-100 text-left">
+                            <label htmlFor="assessment-feedback" className="block text-sm font-black text-gray-900 mb-2">
+                                How was this assessment?
+                            </label>
+                            <p className="text-xs text-gray-500 mb-3">Share at least four words of feedback before exiting.</p>
+                            <textarea
+                                id="assessment-feedback"
+                                value={studentFeedback}
+                                onChange={(event) => setStudentFeedback(event.target.value)}
+                                className="apple-input w-full min-h-28 resize-y"
+                                placeholder="Tell us what worked well or could be improved..."
+                                required
+                            />
+                            <button
+                                type="submit"
+                                disabled={isSavingFeedback || studentFeedback.trim().split(/\s+/).filter(Boolean).length < 4}
+                                className="apple-btn apple-btn-primary w-full mt-4 !py-4 !text-xs !font-black !uppercase !tracking-widest disabled:opacity-50"
+                            >
+                                {isSavingFeedback ? 'Saving Feedback...' : 'Submit Feedback and Exit'}
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => navigate('/student', { replace: true })}
+                                className="w-full mt-3 py-2 text-xs font-bold text-gray-500 hover:text-gray-900"
+                            >
+                                Skip feedback and exit
+                            </button>
+                        </form>
+
+                        {/* Feature 8: Shadow Grading Launcher */}
+                        <div className="mb-6">
+                            <button
+                                onClick={() => setShowShadowModal(true)}
+                                className="w-full py-3 px-4 rounded-2xl bg-indigo-600/10 text-indigo-600 border border-indigo-200 font-extrabold text-xs flex items-center justify-center gap-2 hover:bg-indigo-600 hover:text-white transition-all shadow-sm"
+                            >
+                                <span>👻 View Shadow Grading (AI Reasoning Divergence)</span>
+                            </button>
+                        </div>
+
+                        <ShadowGradingModal
+                            isOpen={showShadowModal}
+                            onClose={() => setShowShadowModal(false)}
+                            shadowData={shadowData}
+                        />
                     </div>
                 </div>
             </PageTransition>
@@ -256,12 +329,12 @@ export default function TestInterface() {
                                     <span>{realTest.duration} MIN</span>
                                 </div>
                             </div>
-                            {realTest.time && realTest.endTime && (
+                            {isValidClockTime(realTest.time) && isValidClockTime(realTest.endTime) && (
                                 <div className="text-center">
                                     <p className="text-[10px] font-black text-gray-300 uppercase tracking-widest mb-1">Access Period</p>
-                                    <div className="text-sm font-bold text-gray-700 flex justify-center items-center gap-2">
-                                        <HiOutlineClock className="w-4 h-4 text-amber-500" />
-                                        <span>{realTest.time} - {realTest.endTime}</span>
+                                    <div className="text-sm font-bold text-gray-700 flex flex-col justify-center items-center gap-1">
+                                        <span className="flex items-center gap-2"><HiOutlineClock className="w-4 h-4 text-amber-500" /> Start: {formatClockTime(realTest.time)}</span>
+                                            <span>End: {formatClockTime(realTest.endTime)}</span>
                                     </div>
                                 </div>
                             )}
@@ -292,7 +365,7 @@ export default function TestInterface() {
                                 <p className="text-sm font-bold text-gray-500 uppercase tracking-widest">
                                     Outside Authorization Window
                                 </p>
-                                <p className="text-xs text-gray-400 mt-1 font-medium">Please return between {realTest.time} and {realTest.endTime}</p>
+                                <p className="text-xs text-gray-400 mt-1 font-medium">Please return between {formatClockTime(realTest.time)} and {formatClockTime(realTest.endTime)}</p>
                             </div>
                         )}
 
@@ -351,7 +424,7 @@ export default function TestInterface() {
                     <div className="flex items-center gap-6">
                         <div className={`px-5 py-2.5 rounded-2xl font-black text-sm tracking-widest flex items-center gap-2 transition-all ${timeLeft < 60 ? 'bg-rose-50 text-rose-500 animate-pulse' : 'bg-gray-100 text-gray-700'}`}>
                             <HiOutlineClock className="w-4 h-4" />
-                            {formatTime(timeLeft)}
+                            {formatRemainingTime(timeLeft)}
                         </div>
                         <button onClick={handleSubmit} className="apple-btn apple-btn-primary !py-2.5 !px-6 !text-[10px] !font-black !uppercase !tracking-widest !bg-emerald-500">
                             Finalize
@@ -363,7 +436,7 @@ export default function TestInterface() {
                     <ProgressBar value={progress} height={4} showLabel={false} />
                 </div>
 
-                <motion.div
+                <MotionDiv
                     key={currentIdx}
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -394,7 +467,7 @@ export default function TestInterface() {
                             );
                         })}
                     </div>
-                </motion.div>
+                </MotionDiv>
 
                 <div className="flex items-center justify-between gap-6">
                     <button

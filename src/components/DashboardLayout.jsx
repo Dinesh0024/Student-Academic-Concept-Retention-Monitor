@@ -12,8 +12,8 @@ export default function DashboardLayout({ children }) {
         <div className={`min-h-screen theme-transition bg-surface-secondary text-text-primary ${user?.role === 'student' ? 'portal-student' : 'portal-faculty'}`}>
             <Navbar onMenuToggle={() => setSidebarOpen(!sidebarOpen)} />
             <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} role={user?.role} />
-            <main className="pt-16 md:pl-[72px]">
-                <div className="p-6 max-w-7xl mx-auto">
+            <main className="pt-16 md:pl-[240px]">
+                <div className="p-6 lg:p-8 max-w-[1400px] mx-auto">
                     {children || <Outlet />}
                 </div>
             </main>

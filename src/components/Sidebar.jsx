@@ -1,3 +1,5 @@
+import mockDb from '../utils/apiDb';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -12,8 +14,11 @@ import {
     HiOutlineX,
     HiOutlineShieldCheck,
     HiOutlineOfficeBuilding,
+    HiOutlineUserCircle,
 } from 'react-icons/hi';
 import { useAuth } from '../context/AuthContext';
+
+const MotionDiv = motion.div;
 
 const adminLinks = [
     { to: '/admin', icon: HiOutlineShieldCheck, label: 'Control Center' },
@@ -23,18 +28,19 @@ const adminLinks = [
 ];
 
 const facultyLinks = [
-    { to: '/faculty', icon: HiOutlineViewGrid, label: 'Overview' },
-    { to: '/faculty/concepts', icon: HiOutlineLightBulb, label: 'Knowledge Graph' },
+    { to: '/faculty', icon: HiOutlineViewGrid, label: 'Dashboard' },
+    { to: '/faculty/students', icon: HiOutlineUserGroup, label: 'Students' },
+    { to: '/faculty/doubts', icon: HiOutlineLightBulb, label: 'QueryCoach' },
     { to: '/faculty/questions', icon: HiOutlineDocumentText, label: 'AI Generator' },
     { to: '/faculty/attendance', icon: HiOutlineUserGroup, label: 'Attendance' },
     { to: '/faculty/settings', icon: HiOutlineCog, label: 'Settings' },
 ];
 
 const studentLinks = [
-    { to: '/student', icon: HiOutlineViewGrid, label: 'Learning Path' },
-    { to: '/student/assessments', icon: HiOutlineDocumentText, label: 'Live Assessment' },
-    { to: '/student/concepts', icon: HiOutlineLightBulb, label: 'Knowledge Map' },
-    { to: '/student/feedback', icon: HiOutlineDocumentReport, label: 'Mentorship Hub' },
+    { to: '/student', icon: HiOutlineViewGrid, label: 'Dashboard' },
+    { to: '/student/assessments', icon: HiOutlineDocumentText, label: 'Assessments' },
+    { to: '/student/doubts', icon: HiOutlineLightBulb, label: 'QueryCoach' },
+    { to: '/student/feedback', icon: HiOutlineDocumentReport, label: 'Mentorship' },
     { to: '/student/settings', icon: HiOutlineCog, label: 'Settings' },
 ];
 
@@ -67,44 +73,52 @@ export default function Sidebar({ isOpen, onClose, role }) {
         navigate('/');
     };
 
+    const firstName = user?.name?.split(' ')[0] || 'User';
+    const roleLabel = role === 'faculty' ? 'Faculty' : role === 'admin' ? 'Admin' : 'Student';
+
     return (
         <>
             <AnimatePresence>
                 {isOpen && (
-                    <motion.div
+                    <MotionDiv
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="fixed inset-0 bg-black/20 backdrop-blur-sm z-30 md:hidden"
+                        className="fixed inset-0 bg-black/30 backdrop-blur-sm z-30 md:hidden"
                         onClick={onClose}
                     />
                 )}
             </AnimatePresence>
 
             <aside
-                className={`fixed top-0 left-0 bottom-0 w-[72px] z-40 bg-white dark:bg-surface-secondary border-r border-border/10 transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
+                className={`fixed top-0 left-0 bottom-0 z-40 sidebar-wide transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
                     }`}
             >
-                <div className="h-full flex flex-col items-center">
-                    {/* R Logo - inline with navbar (h-16 = 64px) */}
-                    <div className="h-16 w-full flex items-center justify-center border-b border-border/10">
-                        <Link to="/" className="sidebar-link group relative">
-                            <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-accent text-white shadow-md shadow-accent/25 transition-transform group-hover:scale-110">
-                                <span className="font-black text-sm">R</span>
+                <div className="h-full flex flex-col">
+                    {/* Logo Section */}
+                    <div className="h-16 flex items-center px-6 gap-3 border-b border-white/10">
+                        <Link to="/" className="flex items-center gap-3 group" onClick={onClose}>
+                            <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-indigo-400/20 text-white shadow-lg shadow-indigo-500/20 transition-transform group-hover:scale-105 border border-indigo-400/30">
+                                <span className="font-black text-sm">A</span>
                             </div>
-                            <span className="sidebar-tooltip">Retain - Academic Monitor</span>
+                            <span className="font-black text-lg tracking-tight text-white">
+                                AcademiQ<span className="text-indigo-300">.</span>
+                            </span>
                         </Link>
+
+                        {/* Close button - mobile only */}
+                        {isOpen && (
+                            <button onClick={onClose} className="md:hidden ml-auto p-1.5 text-white/40 hover:text-white rounded-lg hover:bg-white/10 transition-all">
+                                <HiOutlineX className="w-5 h-5" />
+                            </button>
+                        )}
                     </div>
 
-                    {/* Close button - mobile only */}
-                    {isOpen && (
-                        <button onClick={onClose} className="md:hidden mt-2 p-2 text-text-tertiary hover:text-text-primary">
-                            <HiOutlineX className="w-5 h-5" />
-                        </button>
-                    )}
-
-                    {/* Navigation Icons - straight alignment with highlighted bg */}
-                    <nav className="flex-1 flex flex-col items-center gap-1 w-full px-2.5 py-4">
+                    {/* Navigation */}
+                    <nav className="flex-1 flex flex-col gap-1 px-4 py-5 overflow-y-auto">
+                        <p className="text-[10px] font-bold text-white/30 uppercase tracking-[0.2em] px-4 mb-2">
+                            {roleLabel} Portal
+                        </p>
                         {links.map((link) => {
                             const isActive = location.pathname === link.to;
                             return (
@@ -112,42 +126,51 @@ export default function Sidebar({ isOpen, onClose, role }) {
                                     key={link.to}
                                     to={link.to}
                                     onClick={onClose}
-                                    className={`sidebar-link relative flex items-center justify-center w-[46px] h-[46px] rounded-xl transition-all duration-200 group ${isActive
-                                        ? 'bg-gradient-to-br from-accent/20 to-indigo-400/10 text-accent shadow-sm'
-                                        : 'text-text-tertiary hover:text-accent hover:bg-accent/8 bg-surface-secondary/40'
-                                        }`}
+                                    className={`sidebar-nav-item ${isActive ? 'active' : ''}`}
                                 >
-                                    <link.icon className={`w-5 h-5 transition-transform duration-200 ${isActive ? '' : 'group-hover:scale-110'}`} />
+                                    <link.icon className="w-[18px] h-[18px] flex-shrink-0" />
+                                    <span>{link.label}</span>
 
                                     {/* Unread Feedback Notification Dot */}
-                                    {link.label === 'Mentorship Hub' && hasNewFeedback && (
-                                        <span className="absolute top-2 right-2 w-2.5 h-2.5 bg-red-500 border-2 border-white dark:border-surface-secondary rounded-full animate-pulse shadow-sm shadow-red-500/30" />
+                                    {link.label === 'Mentorship' && hasNewFeedback && (
+                                        <span className="ml-auto w-2 h-2 bg-red-400 rounded-full animate-pulse shadow-sm shadow-red-400/50" />
                                     )}
-
-                                    {/* Active indicator */}
-                                    {isActive && (
-                                        <motion.div
-                                            layoutId="sidebar-active"
-                                            className="absolute left-0 w-[3px] h-4 bg-accent rounded-r-full"
-                                            transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-                                        />
-                                    )}
-
-                                    {/* Tooltip */}
-                                    <span className="sidebar-tooltip">{link.label}</span>
                                 </Link>
                             );
                         })}
                     </nav>
 
-                    {/* Logout - clearly visible at bottom */}
-                    <div className="w-full px-2.5 pb-5">
+                    {/* User Section at Bottom */}
+                    <div className="px-4 pb-5 space-y-3">
+                        {/* Usage Indicator */}
+                        <div className="px-4 py-3 rounded-xl bg-white/5 border border-white/10">
+                            <div className="flex justify-between items-center mb-2">
+                                <span className="text-[10px] font-bold text-white/40 uppercase tracking-wider">Activity</span>
+                                <span className="text-[10px] font-bold text-indigo-300">Active</span>
+                            </div>
+                            <div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden">
+                                <div className="h-full bg-gradient-to-r from-indigo-400 to-violet-400 rounded-full" style={{ width: '72%' }} />
+                            </div>
+                        </div>
+
+                        {/* User Avatar + Name */}
+                        <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-white/5 border border-white/10">
+                            <div className="w-9 h-9 rounded-full bg-indigo-400/20 flex items-center justify-center text-indigo-300 border border-indigo-400/30">
+                                <HiOutlineUserCircle className="w-5 h-5" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                                <p className="text-sm font-bold text-white truncate">{firstName}</p>
+                                <p className="text-[10px] font-bold text-indigo-300 uppercase tracking-wider">{roleLabel}</p>
+                            </div>
+                        </div>
+
+                        {/* Logout */}
                         <button
                             onClick={handleLogout}
-                            className="sidebar-link relative flex items-center justify-center w-[46px] h-[46px] mx-auto rounded-xl bg-red-50 dark:bg-red-500/5 text-red-400 hover:bg-red-100 dark:hover:bg-red-500/10 hover:text-red-500 transition-all group"
+                            className="sidebar-nav-item w-full !text-red-300/70 hover:!text-red-300 hover:!bg-red-500/10"
                         >
-                            <HiOutlineLogout className="w-5 h-5" />
-                            <span className="sidebar-tooltip">Sign Out</span>
+                            <HiOutlineLogout className="w-[18px] h-[18px]" />
+                            <span>Sign Out</span>
                         </button>
                     </div>
                 </div>

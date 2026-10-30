@@ -38,6 +38,43 @@ class JsonDatabase {
         fs.writeFileSync(DB_FILE, JSON.stringify(data || this.data, null, 2));
     }
 
+    getRecords(collection) {
+        return [...(this.data[collection] || [])];
+    }
+
+    upsertRecord(collection, record) {
+        const records = this.data[collection] || [];
+        const index = records.findIndex((item) => String(item.id) === String(record.id));
+        if (index === -1) {
+            records.push(record);
+        } else {
+            records[index] = { ...records[index], ...record };
+        }
+        this.data[collection] = records;
+        this.save();
+        return index === -1 ? record : records[index];
+    }
+
+    insertRecord(collection, record) {
+        const records = this.data[collection] || [];
+        if (records.some((item) => String(item.id) === String(record.id))) {
+            return false;
+        }
+        records.push(record);
+        this.data[collection] = records;
+        this.save();
+        return true;
+    }
+
+    deleteRecord(collection, id) {
+        const records = this.data[collection] || [];
+        const remaining = records.filter((item) => String(item.id) !== String(id));
+        if (remaining.length === records.length) return false;
+        this.data[collection] = remaining;
+        this.save();
+        return true;
+    }
+
     async query(text, params = []) {
         // console.log('Mock Query:', text, params);
         const query = text.trim().toLowerCase();
@@ -111,6 +148,10 @@ class JsonDatabase {
                 }
                 if (whereClause.includes('email = $1')) {
                     return row.email === params[0];
+                }
+                const fieldMatch = whereClause.match(/^([a-z_]+) = \$1$/);
+                if (fieldMatch) {
+                    return row[fieldMatch[1]] === params[0];
                 }
                 if (whereClause.includes('id = $1')) {
                     return row.id == params[0];
