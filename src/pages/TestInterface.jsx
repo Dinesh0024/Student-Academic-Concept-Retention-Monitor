@@ -1,15 +1,13 @@
 import mockDb from '../utils/apiDb';
 import { useState, useEffect, useCallback } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { HiOutlineClock, HiOutlineExclamationCircle, HiOutlineCheckCircle, HiOutlineLightBulb } from 'react-icons/hi';
+import { HiOutlineClock, HiOutlineExclamationCircle, HiOutlineLightBulb } from 'react-icons/hi';
 import PageTransition from '../components/PageTransition';
 import ProgressBar from '../components/ProgressBar';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
 import { generateUniqueQuestions } from '../utils/questionGeneratorEngine';
-import ShadowGradingModal from '../components/ShadowGradingModal';
-import { generateShadowGradingAnalysis } from '../utils/analytics';
 
 const MotionDiv = motion.div;
 const isValidClockTime = (time) => typeof time === 'string' && /^([01]\d|2[0-3]):[0-5]\d$/.test(time);
@@ -80,16 +78,9 @@ export default function TestInterface() {
     const [currentIdx, setCurrentIdx] = useState(0);
     const [answers, setAnswers] = useState({});
     const [submitted, setSubmitted] = useState(false);
-    const [score, setScore] = useState(null);
-    const [correctAnswers, setCorrectAnswers] = useState(0);
-    const [aiFeedback, setAiFeedback] = useState(null);
-    const [resultId, setResultId] = useState(null);
-    const [studentFeedback, setStudentFeedback] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [isSavingFeedback, setIsSavingFeedback] = useState(false);
     const [timeLeft, setTimeLeft] = useState(() => realTest ? realTest.duration * 60 : 0);
     const [missedReason, setMissedReason] = useState('');
-    const [showShadowModal, setShowShadowModal] = useState(false);
 
     // Calculate time window enforcement
     const checkTimeWindow = () => {
@@ -147,7 +138,7 @@ export default function TestInterface() {
                 ? 'AI Recommendation: Review primary source materials and complete secondary practice modules for weak points.'
                 : 'Maintain current velocity and exploration.';
 
-            const savedResult = await mockDb.saveResult({
+            await mockDb.saveResult({
                 testId: realTest.id,
                 testName: realTest.title,
                 studentName: user.name,
@@ -157,11 +148,9 @@ export default function TestInterface() {
                 aiSolutions: solutions
             });
 
-            setCorrectAnswers(correct);
-            setScore(finalScore);
-            setAiFeedback({ drawbacks, solutions });
-            setResultId(savedResult.id);
+            sessionStorage.removeItem('active_deployed_test');
             setSubmitted(true);
+            toast.success('Assessment submitted. Returning to your dashboard.');
         } catch (error) {
             console.error('Assessment submission failed:', error);
             toast.error(error.message || 'Could not submit the assessment. Please try again.');
@@ -169,27 +158,6 @@ export default function TestInterface() {
             setIsSubmitting(false);
         }
     }, [answers, isSubmitting, realTest, submitted, user]);
-
-    const handleFeedbackAndExit = async (event) => {
-        event.preventDefault();
-        const wordCount = studentFeedback.trim().split(/\s+/).filter(Boolean).length;
-        if (!resultId || wordCount < 4) {
-            toast.error('Please enter at least four words of feedback.');
-            return;
-        }
-
-        setIsSavingFeedback(true);
-        try {
-            await mockDb.updateStudentTestFeedback(resultId, studentFeedback.trim());
-            toast.success('Feedback saved. Returning to your dashboard.');
-            navigate('/student', { replace: true });
-        } catch (error) {
-            console.error('Assessment feedback could not be saved:', error);
-            toast.error(error.message || 'Could not save your feedback. Please try again.');
-        } finally {
-            setIsSavingFeedback(false);
-        }
-    };
 
     useEffect(() => {
         let timer;
@@ -229,85 +197,7 @@ export default function TestInterface() {
         setAnswers({ ...answers, [qId]: option });
     };
 
-    if (submitted) {
-        const shadowData = generateShadowGradingAnalysis(realTest.questions, answers);
-
-        return (
-            <PageTransition>
-                <div className="min-h-[80vh] flex items-center justify-center p-6">
-                    <div className="premium-card p-12 max-w-lg w-full text-center bg-white shadow-2xl shadow-emerald-500/10 border-t-4 border-t-emerald-500">
-                        <div className="w-20 h-20 rounded-2xl bg-emerald-50 text-emerald-500 flex items-center justify-center mx-auto mb-8 shadow-inner">
-                            <HiOutlineCheckCircle className="w-12 h-12" />
-                        </div>
-                        <h2 className="text-3xl font-bold text-gray-900 mb-2 tracking-tight">Transmission Complete</h2>
-                        <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-10">Assessment data successfully uploaded</p>
-
-                        <div className="bg-gray-50 rounded-3xl p-8 mb-6 border border-gray-100">
-                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Your Score</p>
-                            <h3 className={`text-6xl font-black ${score >= 70 ? 'text-emerald-500' : 'text-amber-500'} tracking-tighter`}>
-                                {correctAnswers} <span className="text-3xl text-gray-400">/ {realTest.questions.length}</span>
-                            </h3>
-                            <p className="text-xs font-bold text-gray-500 mt-3">Correct answers out of total questions</p>
-                        </div>
-
-                        <div className="bg-blue-50/50 rounded-3xl p-6 mb-6 border border-blue-100/50 text-left">
-                            <div className="flex items-center gap-2 mb-3">
-                                <HiOutlineLightBulb className="w-5 h-5 text-blue-500" />
-                                <h4 className="text-sm font-black text-blue-900 uppercase tracking-widest">Feedback</h4>
-                            </div>
-                            <p className="text-xs font-medium text-blue-800 leading-relaxed">{aiFeedback.drawbacks}</p>
-                            <p className="text-xs font-medium text-emerald-700 leading-relaxed mt-3">{aiFeedback.solutions}</p>
-                        </div>
-
-                        <form onSubmit={handleFeedbackAndExit} className="bg-gray-50 rounded-3xl p-6 mb-6 border border-gray-100 text-left">
-                            <label htmlFor="assessment-feedback" className="block text-sm font-black text-gray-900 mb-2">
-                                How was this assessment?
-                            </label>
-                            <p className="text-xs text-gray-500 mb-3">Share at least four words of feedback before exiting.</p>
-                            <textarea
-                                id="assessment-feedback"
-                                value={studentFeedback}
-                                onChange={(event) => setStudentFeedback(event.target.value)}
-                                className="apple-input w-full min-h-28 resize-y"
-                                placeholder="Tell us what worked well or could be improved..."
-                                required
-                            />
-                            <button
-                                type="submit"
-                                disabled={isSavingFeedback || studentFeedback.trim().split(/\s+/).filter(Boolean).length < 4}
-                                className="apple-btn apple-btn-primary w-full mt-4 !py-4 !text-xs !font-black !uppercase !tracking-widest disabled:opacity-50"
-                            >
-                                {isSavingFeedback ? 'Saving Feedback...' : 'Submit Feedback and Exit'}
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => navigate('/student', { replace: true })}
-                                className="w-full mt-3 py-2 text-xs font-bold text-gray-500 hover:text-gray-900"
-                            >
-                                Skip feedback and exit
-                            </button>
-                        </form>
-
-                        {/* Feature 8: Shadow Grading Launcher */}
-                        <div className="mb-6">
-                            <button
-                                onClick={() => setShowShadowModal(true)}
-                                className="w-full py-3 px-4 rounded-2xl bg-indigo-600/10 text-indigo-600 border border-indigo-200 font-extrabold text-xs flex items-center justify-center gap-2 hover:bg-indigo-600 hover:text-white transition-all shadow-sm"
-                            >
-                                <span>👻 View Shadow Grading (AI Reasoning Divergence)</span>
-                            </button>
-                        </div>
-
-                        <ShadowGradingModal
-                            isOpen={showShadowModal}
-                            onClose={() => setShowShadowModal(false)}
-                            shadowData={shadowData}
-                        />
-                    </div>
-                </div>
-            </PageTransition>
-        );
-    }
+    if (submitted) return <Navigate to="/student" replace />;
 
     if (!started) {
         return (
